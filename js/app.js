@@ -567,7 +567,7 @@ class App {
         text: frameText,
         color: frameColor,
         textColor: frameTextColor,
-        fontFamily: "'Plus Jakarta Sans', sans-serif"
+        fontFamily: "Arial, Helvetica, sans-serif"
       }
     };
 

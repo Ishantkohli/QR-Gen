@@ -52,7 +52,7 @@ export class QRGenerator {
         text: 'SCAN ME',
         color: '#2563eb',
         textColor: '#ffffff',
-        fontFamily: "'Plus Jakarta Sans', sans-serif"
+        fontFamily: "Arial, Helvetica, sans-serif"
       }
     };
   }

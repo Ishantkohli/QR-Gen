@@ -7,7 +7,13 @@
   <title>QR Studio Pro</title>
   <meta name="description"
     content="Generate beautiful, customizable, high-resolution QR codes with logos, gradients, custom frames, batch export, and real-time scannability health check.">
+  <meta name="theme-color" content="#090d16">
 
+  <!-- Resource Hints & DNS Prefetching -->
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
   <!-- Google Fonts: JetBrains Mono (Arial is a system font) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -841,9 +847,21 @@
         <button class="modal-close-btn" data-close="presetsModal"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
           Select a one-click professionally crafted aesthetic for your QR code:
         </p>
+
+        <!-- Preset Categories -->
+        <div class="preset-categories-bar" id="presetCategoriesBar">
+          <button type="button" class="category-btn active" data-category="all">All</button>
+          <button type="button" class="category-btn" data-category="cool">🔥 Cool</button>
+          <button type="button" class="category-btn" data-category="professional">💼 Professional</button>
+          <button type="button" class="category-btn" data-category="simple">✨ Simple</button>
+          <button type="button" class="category-btn" data-category="gaming">🎮 Gaming</button>
+          <button type="button" class="category-btn" data-category="memes">🤣 Memes (Indian)</button>
+          <button type="button" class="category-btn" data-category="cringe">🥴 Cringe</button>
+        </div>
+
         <div class="presets-grid" id="presetsModalGrid">
           <!-- Injected via app.js -->
         </div>

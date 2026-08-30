@@ -906,6 +906,50 @@ a {
   background: var(--primary-light);
 }
 
+/* Preset Categories Filter Bar */
+.preset-categories-bar {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  margin-bottom: 1.25rem;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.preset-categories-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.preset-categories-bar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.category-btn {
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.category-btn:hover {
+  border-color: var(--primary);
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+.category-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
 /* Preset Cards Grid */
 .presets-grid {
   display: grid;
@@ -923,6 +967,9 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 240px 180px;
 }
 
 .preset-card:hover {

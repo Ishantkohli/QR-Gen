@@ -116,46 +116,65 @@ class App {
     });
   }
 
-  renderDesignPresetsModal() {
+  renderDesignPresetsModal(filterCategory = 'all') {
     const grid = document.getElementById('presetsModalGrid');
     if (!grid) return;
     grid.innerHTML = '';
 
-    DesignPresets.forEach(preset => {
+    const filtered = filterCategory === 'all'
+      ? DesignPresets
+      : DesignPresets.filter(preset => preset.category === filterCategory);
+
+    // Setup Lazy Render Observer for instant modal opening and zero lag
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          const presetData = card._presetObj;
+          const miniDiv = card.querySelector('.mini-holder');
+          if (miniDiv && !card.dataset.rendered) {
+            card.dataset.rendered = 'true';
+            const miniQR = new QRCodeStyling({
+              width: 80,
+              height: 80,
+              data: 'https://example.com',
+              margin: 2,
+              dotsOptions: {
+                type: presetData.dotsType,
+                color: presetData.dotsColor,
+                gradient: presetData.dotsColorType === 'gradient' ? {
+                  type: presetData.gradientType,
+                  rotation: (presetData.gradientRotation * Math.PI) / 180,
+                  colorStops: [
+                    { offset: 0, color: presetData.dotsColor },
+                    { offset: 1, color: presetData.dotsGradientColor }
+                  ]
+                } : null
+              },
+              backgroundOptions: { color: presetData.background },
+              cornersSquareOptions: { type: presetData.cornerSquareType, color: presetData.cornerSquareColor },
+              cornersDotOptions: { type: presetData.cornerDotType, color: presetData.cornerDotColor }
+            });
+            miniQR.append(miniDiv);
+          }
+          obs.unobserve(card);
+        }
+      });
+    }, { root: document.getElementById('presetsModal'), rootMargin: '100px' });
+
+    filtered.forEach(preset => {
       const card = document.createElement('div');
       card.className = 'preset-card';
+      card._presetObj = preset;
 
       const thumb = document.createElement('div');
       thumb.className = 'preset-preview-thumb';
       thumb.style.background = preset.background || '#ffffff';
       thumb.style.border = '1px solid var(--border-color)';
 
-      // Preview mini canvas inside card
       const miniDiv = document.createElement('div');
+      miniDiv.className = 'mini-holder';
       thumb.appendChild(miniDiv);
-
-      const miniQR = new QRCodeStyling({
-        width: 80,
-        height: 80,
-        data: 'https://example.com',
-        margin: 2,
-        dotsOptions: {
-          type: preset.dotsType,
-          color: preset.dotsColor,
-          gradient: preset.dotsColorType === 'gradient' ? {
-            type: preset.gradientType,
-            rotation: (preset.gradientRotation * Math.PI) / 180,
-            colorStops: [
-              { offset: 0, color: preset.dotsColor },
-              { offset: 1, color: preset.dotsGradientColor }
-            ]
-          } : null
-        },
-        backgroundOptions: { color: preset.background },
-        cornersSquareOptions: { type: preset.cornerSquareType, color: preset.cornerSquareColor },
-        cornersDotOptions: { type: preset.cornerDotType, color: preset.cornerDotColor }
-      });
-      miniQR.append(miniDiv);
 
       const title = document.createElement('div');
       title.className = 'preset-title';
@@ -176,6 +195,7 @@ class App {
       });
 
       grid.appendChild(card);
+      observer.observe(card);
     });
   }
 
@@ -392,13 +412,15 @@ class App {
 
     // 9. Modals Trigger
     document.getElementById('btnOpenPresets').addEventListener('click', () => this.openModal('presetsModal'));
-    document.getElementById('btnOpenAnalytics').addEventListener('click', () => {
-      this.openModal('analyticsModal');
-      this.initAnalytics();
+    // Preset Categories Filter
+    document.querySelectorAll('#presetCategoriesBar .category-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#presetCategoriesBar .category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.renderDesignPresetsModal(btn.dataset.category);
+      });
     });
-    document.getElementById('btnRefreshAnalytics').addEventListener('click', () => {
-      this.refreshAnalyticsData();
-    });
+
     document.getElementById('btnOpenBatch').addEventListener('click', () => this.openModal('batchModal'));
     document.getElementById('btnOpenHistory').addEventListener('click', () => {
       this.openModal('historyModal');
@@ -830,41 +852,7 @@ class App {
     }
   }
 
-  // ==========================================
-  // Campaign Analytics Simulator
-  // ==========================================
-  initAnalytics() {
-    this.refreshAnalyticsData(true);
-  }
 
-  refreshAnalyticsData(isFirst = false) {
-    if (!isFirst) {
-      this.showToast('Refreshing live tracking statistics...', 'info');
-    }
-
-    const totalScans = Math.floor(20000 + Math.random() * 8000);
-    const uniqueUsers = Math.floor(totalScans * 0.73 + Math.random() * 500);
-    const conversion = (uniqueUsers / totalScans * 100).toFixed(1);
-
-    document.getElementById('statTotalScans').textContent = totalScans.toLocaleString();
-    document.getElementById('statUniqueScanners').textContent = uniqueUsers.toLocaleString();
-    document.getElementById('statConvRate').textContent = `${conversion}%`;
-
-    const bars = ['chartBar1', 'chartBar2', 'chartBar3', 'chartBar4', 'chartBar5', 'chartBar6'];
-    bars.forEach(barId => {
-      const el = document.getElementById(barId);
-      if (el) {
-        const height = Math.floor(40 + Math.random() * 80);
-        el.style.height = `${height}px`;
-      }
-    });
-
-    if (!isFirst) {
-      setTimeout(() => {
-        this.showToast('Analytics dashboard updated successfully!', 'success');
-      }, 300);
-    }
-  }
 
   // ==========================================
   // Batch Generator Implementation
@@ -1010,9 +998,6 @@ WIFI:S:OfficeWifi;T:WPA;P:SecretPass123;;, wifi_card`;
   closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('active');
-    if (modalId === 'analyticsModal') {
-      console.log('Analytics Simulator closed');
-    }
   }
 
   // ==========================================

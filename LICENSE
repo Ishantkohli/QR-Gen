@@ -1,21 +1,58 @@
-MIT License
+# QR-Gen License
 
-Copyright (c) 2026 ishant
+Copyright © 2026 Ishant Kohli. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 1. Permitted Use
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+You are permitted to access and use the publicly available **QR-Gen website** and its features for their intended purpose.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Using the website does not grant you any ownership rights or permission to reuse its source code.
+
+## 2. Source Code Restrictions
+
+Unless you have received prior written permission from the owner, you may not:
+
+* Copy, reproduce, or reuse any part of the QR-Gen source code.
+* Clone or redistribute the project or repository.
+* Copy and paste the HTML, CSS, JavaScript, or other project files into another project.
+* Modify the source code and publish or distribute it as your own.
+* Use substantial portions of the code to create a duplicate or substantially similar version of QR-Gen.
+* Sell, sublicense, redistribute, or commercially distribute the source code.
+* Remove or modify copyright, ownership, or attribution notices.
+* Claim the original QR-Gen source code, design implementation, or project as your own work.
+
+## 3. Website Usage
+
+You may use the official QR-Gen website normally, including generating QR codes and using the publicly available functionality.
+
+Normal use of the website is allowed.
+
+However, permission to use the website does not include permission to copy, clone, redistribute, or reuse its underlying source code.
+
+## 4. Permission for Reuse
+
+If you want to reuse, modify, redistribute, publish, or incorporate any part of QR-Gen into another website, application, repository, or project, you must first obtain written permission from the owner.
+
+**Owner:** Ishant Kohli
+
+Any permission granted may be subject to additional conditions specified by the owner.
+
+## 5. Ownership
+
+All original source code, project files, implementation, branding, and other original materials related to QR-Gen remain the property of:
+
+**Ishant Kohli**
+
+No ownership rights are transferred by accessing the website, viewing the repository, or obtaining a copy of the source code.
+
+## 6. Disclaimer
+
+QR-Gen is provided **"as is"** without warranties of any kind, express or implied.
+
+The owner shall not be responsible for any loss, damage, misuse, or other liability resulting from the use of the website or software.
+
+---
+
+**Copyright © 2026 Ishant Kohli. All Rights Reserved.**
+
+Unauthorized copying, cloning, redistribution, modification, or reuse of the QR-Gen source code is prohibited without prior written permission from the owner.

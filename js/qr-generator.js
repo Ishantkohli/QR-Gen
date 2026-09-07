@@ -298,6 +298,434 @@ export class QRGenerator {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(frameText.toUpperCase(), finalCanvas.width / 2, finalCanvas.height - borderWidth - (bottomHeight / 2));
+
+    } else if (frame.style === 'corner-brackets') {
+      const padding = 28 * scale;
+      const bottomHeight = frameText ? 44 * scale : 0;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      // Draw outer background card
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      // Draw QR Code
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // Draw 4 Corner Brackets around QR code
+      const bracketLen = 34 * scale;
+      const bracketStroke = 8 * scale;
+      const bracketRadius = 14 * scale;
+      const bX = padding - (10 * scale);
+      const bY = padding - (10 * scale);
+      const bW = qrSize + (20 * scale);
+      const bH = qrSize + (20 * scale);
+
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = bracketStroke;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Top-Left bracket
+      ctx.beginPath();
+      ctx.moveTo(bX, bY + bracketLen);
+      ctx.lineTo(bX, bY + bracketRadius);
+      ctx.arcTo(bX, bY, bX + bracketRadius, bY, bracketRadius);
+      ctx.lineTo(bX + bracketLen, bY);
+      ctx.stroke();
+
+      // Top-Right bracket
+      ctx.beginPath();
+      ctx.moveTo(bX + bW - bracketLen, bY);
+      ctx.lineTo(bX + bW - bracketRadius, bY);
+      ctx.arcTo(bX + bW, bY, bX + bW, bY + bracketRadius, bracketRadius);
+      ctx.lineTo(bX + bW, bY + bracketLen);
+      ctx.stroke();
+
+      // Bottom-Left bracket
+      ctx.beginPath();
+      ctx.moveTo(bX, bY + bH - bracketLen);
+      ctx.lineTo(bX, bY + bH - bracketRadius);
+      ctx.arcTo(bX, bY + bH, bX + bracketRadius, bY + bH, bracketRadius);
+      ctx.lineTo(bX + bracketLen, bY + bH);
+      ctx.stroke();
+
+      // Bottom-Right bracket
+      ctx.beginPath();
+      ctx.moveTo(bX + bW - bracketLen, bY + bH);
+      ctx.lineTo(bX + bW - bracketRadius, bY + bH);
+      ctx.arcTo(bX + bW, bY + bH, bX + bW, bY + bH - bracketRadius, bracketRadius);
+      ctx.lineTo(bX + bW, bY + bH - bracketLen);
+      ctx.stroke();
+
+      if (frameText) {
+        ctx.fillStyle = frameColor;
+        ctx.font = `800 ${18 * scale}px ${frame.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(frameText, finalCanvas.width / 2, qrSize + padding + (22 * scale));
+      }
+
+    } else if (frame.style === 'circle-badge' || frame.style === 'circle-outline') {
+      const padding = 32 * scale;
+      const bottomHeight = frame.style === 'circle-badge' && frameText ? 44 * scale : 0;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      // Background Card
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      // Draw Circular Ring
+      const centerX = finalCanvas.width / 2;
+      const centerY = padding + (qrSize / 2);
+      const radius = (qrSize / 2) + (14 * scale);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 6 * scale;
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw QR code inside circle
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // If badge with text, draw pill button at bottom
+      if (frame.style === 'circle-badge' && frameText) {
+        const btnWidth = Math.min(qrSize * 0.72, 190 * scale);
+        const btnHeight = 38 * scale;
+        const btnX = centerX - (btnWidth / 2);
+        const btnY = centerY + radius - (btnHeight / 2) + (6 * scale);
+
+        ctx.fillStyle = frameColor;
+        this.roundRect(ctx, btnX, btnY, btnWidth, btnHeight, btnHeight / 2);
+        ctx.fill();
+
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${14 * scale}px ${frame.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(frameText, centerX, btnY + (btnHeight / 2));
+      }
+
+    } else if (frame.style === 'hexagon-badge' || frame.style === 'hexagon-outline') {
+      const padding = 34 * scale;
+      const bottomHeight = frame.style === 'hexagon-badge' && frameText ? 44 * scale : 0;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      const centerX = finalCanvas.width / 2;
+      const centerY = padding + (qrSize / 2);
+      const hexRadius = (qrSize / 2) + (18 * scale);
+
+      // Draw Hexagon Border
+      ctx.save();
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI / 3) - (Math.PI / 6);
+        const hx = centerX + hexRadius * Math.cos(angle);
+        const hy = centerY + hexRadius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(hx, hy);
+        else ctx.lineTo(hx, hy);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 6 * scale;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+      ctx.restore();
+
+      // Draw QR Code
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      if (frame.style === 'hexagon-badge' && frameText) {
+        const btnWidth = Math.min(qrSize * 0.8, 210 * scale);
+        const btnHeight = 36 * scale;
+        const btnX = centerX - (btnWidth / 2);
+        const btnY = qrSize + padding + (12 * scale);
+
+        ctx.fillStyle = frameColor;
+        this.roundRect(ctx, btnX, btnY, btnWidth, btnHeight, btnHeight / 2);
+        ctx.fill();
+
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${14 * scale}px ${frame.fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(frameText, centerX, btnY + (btnHeight / 2));
+      }
+
+    } else if (frame.style === 'ribbon') {
+      const padding = 24 * scale;
+      const bottomHeight = 60 * scale;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      // Card
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      // Draw QR Code
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // Draw 3D Ribbon Banner
+      const ribW = qrSize + (12 * scale);
+      const ribH = 38 * scale;
+      const ribX = (finalCanvas.width - ribW) / 2;
+      const ribY = qrSize + padding + (10 * scale);
+      const foldW = 16 * scale;
+
+      // Ribbon Fold Tails (Darker shade)
+      ctx.fillStyle = this.adjustColorBrightness(frameColor, -25);
+      // Left tail
+      ctx.beginPath();
+      ctx.moveTo(ribX, ribY + (6 * scale));
+      ctx.lineTo(ribX - foldW, ribY + (6 * scale));
+      ctx.lineTo(ribX - (foldW * 0.6), ribY + (6 * scale) + (ribH / 2));
+      ctx.lineTo(ribX - foldW, ribY + ribH + (6 * scale));
+      ctx.lineTo(ribX, ribY + ribH);
+      ctx.closePath();
+      ctx.fill();
+
+      // Right tail
+      ctx.beginPath();
+      ctx.moveTo(ribX + ribW, ribY + (6 * scale));
+      ctx.lineTo(ribX + ribW + foldW, ribY + (6 * scale));
+      ctx.lineTo(ribX + ribW + (foldW * 0.6), ribY + (6 * scale) + (ribH / 2));
+      ctx.lineTo(ribX + ribW + foldW, ribY + ribH + (6 * scale));
+      ctx.lineTo(ribX + ribW, ribY + ribH);
+      ctx.closePath();
+      ctx.fill();
+
+      // Main Ribbon Body
+      ctx.fillStyle = frameColor;
+      ctx.fillRect(ribX, ribY, ribW, ribH);
+
+      // Text on Ribbon
+      ctx.fillStyle = textColor;
+      ctx.font = `800 ${16 * scale}px ${frame.fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(frameText, finalCanvas.width / 2, ribY + (ribH / 2));
+
+    } else if (frame.style === 'tooltip-bubble') {
+      const padding = 24 * scale;
+      const bottomHeight = 64 * scale;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      // Card
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      // Draw QR Code
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // Draw Tooltip Bubble at bottom
+      const bubbleW = qrSize;
+      const bubbleH = 42 * scale;
+      const bubbleX = padding;
+      const bubbleY = qrSize + padding + (12 * scale);
+      const arrowW = 16 * scale;
+      const arrowH = 8 * scale;
+      const centerX = finalCanvas.width / 2;
+
+      ctx.fillStyle = frameColor;
+      this.roundRect(ctx, bubbleX, bubbleY, bubbleW, bubbleH, 12 * scale);
+      ctx.fill();
+
+      // Pointer triangle pointing UP
+      ctx.beginPath();
+      ctx.moveTo(centerX - (arrowW / 2), bubbleY);
+      ctx.lineTo(centerX, bubbleY - arrowH);
+      ctx.lineTo(centerX + (arrowW / 2), bubbleY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Bubble text
+      ctx.fillStyle = textColor;
+      ctx.font = `bold ${16 * scale}px ${frame.fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(frameText, centerX, bubbleY + (bubbleH / 2));
+
+    } else if (frame.style === 'phone') {
+      const padding = 20 * scale;
+      const topBezel = 38 * scale;
+      const bottomBezel = 58 * scale;
+      const cornerRadius = 34 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + topBezel + bottomBezel;
+
+      // Smartphone outer body
+      ctx.fillStyle = frameColor;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      // Screen area (white)
+      const screenX = 8 * scale;
+      const screenY = topBezel;
+      const screenW = finalCanvas.width - (screenX * 2);
+      const screenH = qrSize + (padding * 2) - 8 * scale;
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, screenX, screenY, screenW, screenH, 18 * scale);
+      ctx.fill();
+
+      // Speaker notch & camera dot at top
+      ctx.fillStyle = '#ffffff';
+      const speakerW = 44 * scale;
+      const speakerH = 5 * scale;
+      this.roundRect(ctx, (finalCanvas.width - speakerW) / 2, 16 * scale, speakerW, speakerH, speakerH / 2);
+      ctx.fill();
+
+      // Draw QR Code inside screen
+      ctx.drawImage(rawCanvas, padding, topBezel + (6 * scale), qrSize, qrSize);
+
+      // Bottom Button / Pill
+      const btnW = 140 * scale;
+      const btnH = 34 * scale;
+      const btnX = (finalCanvas.width - btnW) / 2;
+      const btnY = finalCanvas.height - bottomBezel + (12 * scale);
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, btnX, btnY, btnW, btnH, btnH / 2);
+      ctx.fill();
+
+      ctx.fillStyle = frameColor;
+      ctx.font = `800 ${15 * scale}px ${frame.fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(frameText, finalCanvas.width / 2, btnY + (btnH / 2));
+
+    } else if (frame.style === 'dashed-circle') {
+      const padding = 30 * scale;
+      const cornerRadius = 24 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2);
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 2 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      // Draw Dashed Circle
+      const centerX = finalCanvas.width / 2;
+      const centerY = finalCanvas.height / 2;
+      const radius = (qrSize / 2) + (14 * scale);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 4 * scale;
+      ctx.setLineDash([8 * scale, 6 * scale]);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+    } else if (frame.style === 'arch-card') {
+      const padding = 20 * scale;
+      const bottomHeight = 64 * scale;
+      const cornerRadius = 28 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
+
+      // Solid color background card
+      ctx.fillStyle = frameColor;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      // Inner white rounded square for QR code
+      const innerX = 12 * scale;
+      const innerY = 12 * scale;
+      const innerW = finalCanvas.width - (innerX * 2);
+      const innerH = qrSize + (padding * 2) - (12 * scale);
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, innerX, innerY, innerW, innerH, cornerRadius - 6);
+      ctx.fill();
+
+      // Draw QR Code
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // Bottom text
+      ctx.fillStyle = textColor;
+      ctx.font = `italic bold ${20 * scale}px ${frame.fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(frameText, finalCanvas.width / 2, finalCanvas.height - (bottomHeight / 2) + (4 * scale));
+
+    } else if (frame.style === 'simple-box') {
+      const padding = 20 * scale;
+      const cornerRadius = 18 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2);
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = frameColor;
+      ctx.lineWidth = 6 * scale;
+      this.roundRect(ctx, 8 * scale, 8 * scale, finalCanvas.width - (16 * scale), finalCanvas.height - (16 * scale), cornerRadius - 4);
+      ctx.stroke();
+
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
     }
 
     return finalCanvas;
@@ -319,6 +747,19 @@ export class QRGenerator {
     ctx.lineTo(x, y + radius.tl);
     ctx.quadraticCurveTo(x, y, x + radius.tl, y);
     ctx.closePath();
+  }
+
+  adjustColorBrightness(hex, percent) {
+    hex = (hex || '#2563eb').replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    let r = (num >> 16) + Math.round(255 * (percent / 100));
+    let g = ((num >> 8) & 0x00FF) + Math.round(255 * (percent / 100));
+    let b = (num & 0x0000FF) + Math.round(255 * (percent / 100));
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   }
 
   /**

@@ -73,7 +73,9 @@
 /* ==========================================================================
    Base & Reset
    ========================================================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -83,7 +85,7 @@ html {
   font-family: var(--font-sans);
   color: var(--text-primary);
   background-color: var(--bg-main);
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
   background-attachment: fixed;
@@ -99,7 +101,10 @@ body {
   flex-direction: column;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
@@ -327,7 +332,8 @@ a {
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
-.type-tab-btn.active i, .type-tab-btn.active svg {
+.type-tab-btn.active i,
+.type-tab-btn.active svg {
   stroke: #ffffff;
 }
 
@@ -368,7 +374,9 @@ a {
   justify-content: space-between;
 }
 
-.form-input, .form-select, .form-textarea {
+.form-input,
+.form-select,
+.form-textarea {
   width: 100%;
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius-md);
@@ -380,7 +388,9 @@ a {
   transition: var(--transition);
 }
 
-.form-input:focus, .form-select:focus, .form-textarea:focus {
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
   border-color: var(--border-focus);
   background: var(--bg-surface);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
@@ -440,7 +450,7 @@ a {
   transition: var(--transition);
 }
 
-.radio-pill-item input:checked + .radio-pill-label {
+.radio-pill-item input:checked+.radio-pill-label {
   background: var(--primary-light);
   border-color: var(--primary);
   color: var(--primary);
@@ -514,8 +524,15 @@ a {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Style Option Grids */
@@ -677,9 +694,20 @@ a {
 }
 
 @keyframes pulseDot {
-  0% { transform: scale(0.9); opacity: 0.7; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.7; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
 }
 
 .qr-canvas-holder {
@@ -696,7 +724,8 @@ a {
   overflow: hidden;
 }
 
-.qr-canvas-holder canvas, .qr-canvas-holder svg {
+.qr-canvas-holder canvas,
+.qr-canvas-holder svg {
   max-width: 100%;
   height: auto;
   border-radius: var(--radius-md);
@@ -887,8 +916,13 @@ a {
 }
 
 @keyframes scanLaser {
-  0% { top: 0; }
-  100% { top: 100%; }
+  0% {
+    top: 0;
+  }
+
+  100% {
+    top: 100%;
+  }
 }
 
 .scanner-dropzone {
@@ -901,7 +935,8 @@ a {
   background: var(--bg-subtle);
 }
 
-.scanner-dropzone:hover, .scanner-dropzone.dragover {
+.scanner-dropzone:hover,
+.scanner-dropzone.dragover {
   border-color: var(--primary);
   background: var(--primary-light);
 }
@@ -1081,8 +1116,15 @@ a {
 }
 
 @keyframes slideInToast {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Footer */
@@ -1107,36 +1149,41 @@ a {
     flex-direction: column;
     gap: 1.25rem;
   }
-  
+
   /* display: contents allows tabs and inputs to act as direct children of the flex workspace container */
   .generator-left-col {
     display: contents;
   }
 
   .type-selector-bar {
-    order: 1; /* Tabs at the very top */
+    order: 1;
+    /* Tabs at the very top */
     width: 100%;
     margin-bottom: 0.5rem;
   }
 
   .generator-right-col {
-    order: 2; /* QR Code Live Preview card directly below tabs */
+    order: 2;
+    /* QR Code Live Preview card directly below tabs */
     width: 100%;
   }
 
   .content-card {
-    order: 3; /* Form Inputs Card below QR Preview */
+    order: 3;
+    /* Form Inputs Card below QR Preview */
     width: 100%;
     margin-bottom: 0;
   }
 
   .accordion-wrapper {
-    order: 4; /* Design Accordions at the bottom */
+    order: 4;
+    /* Design Accordions at the bottom */
     width: 100%;
   }
-  
+
   .preview-sticky-container {
-    position: static; /* Unstick preview on tablet/mobile so it flows in flex order */
+    position: static;
+    /* Unstick preview on tablet/mobile so it flows in flex order */
   }
 
   .preview-card {
@@ -1182,7 +1229,8 @@ a {
   }
 
   .btn-row {
-    grid-template-columns: 1fr; /* Stack SVG, PDF, JPEG buttons vertically on narrow screens */
+    grid-template-columns: 1fr;
+    /* Stack SVG, PDF, JPEG buttons vertically on narrow screens */
     gap: 0.4rem;
   }
 
@@ -1278,7 +1326,8 @@ a {
   }
 
   .brand span {
-    display: none; /* Hide 'QR Studio PRO' on tiny headers to fit icon-only buttons */
+    display: none;
+    /* Hide 'QR Studio PRO' on tiny headers to fit icon-only buttons */
   }
 
   .type-tab-btn {
@@ -1286,5 +1335,3 @@ a {
     font-size: 0.8rem;
   }
 }
-
-

@@ -47,7 +47,12 @@ class App {
     this.generator = null;
     this.batchGenerator = null;
     this.updateDebounceTimer = null;
+    this.updateRafId = null;
     this.selectedLogoPreset = null;
+    this.rawLogoSource = null;
+    this.selectedLogoShape = 'original';
+    this.selectedLogoBg = 'none';
+    this.logoShapeCache = new Map();
 
     this.init();
   }
@@ -85,6 +90,156 @@ class App {
   }
 
   // ==========================================
+  // Image / Logo Shaping Pipeline with Cache
+  // ==========================================
+  async processLogoShape(imageSource, shape = 'original', bgMode = 'none') {
+    if (!imageSource || imageSource.trim() === '') return '';
+    if (shape === 'original' && bgMode === 'none') {
+      return imageSource;
+    }
+
+    // Check fast memory cache
+    const cacheKey = `${shape}_${bgMode}_${imageSource.length}_${imageSource.slice(0, 40)}`;
+    if (this.logoShapeCache.has(cacheKey)) {
+      return this.logoShapeCache.get(cacheKey);
+    }
+
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        const cx = size / 2;
+        const cy = size / 2;
+        const radius = size / 2;
+
+        function createShapePath(context, s, padding = 0) {
+          const w = size - (padding * 2);
+          const h = size - (padding * 2);
+          const x = padding;
+          const y = padding;
+          const r = w / 2;
+          const center = size / 2;
+
+          context.beginPath();
+          if (s === 'circle') {
+            context.arc(center, center, r, 0, Math.PI * 2);
+          } else if (s === 'rounded') {
+            const cornerR = w * 0.22;
+            context.roundRect(x, y, w, h, cornerR);
+          } else if (s === 'squircle') {
+            const cr = w * 0.44;
+            context.roundRect(x, y, w, h, cr);
+          } else if (s === 'diamond') {
+            context.moveTo(center, y);
+            context.lineTo(x + w, center);
+            context.lineTo(center, y + h);
+            context.lineTo(x, center);
+            context.closePath();
+          } else if (s === 'hexagon') {
+            const sides = 6;
+            const hexR = r;
+            for (let i = 0; i < sides; i++) {
+              const angle = (i * 2 * Math.PI) / sides - Math.PI / 2;
+              const px = center + hexR * Math.cos(angle);
+              const py = center + hexR * Math.sin(angle);
+              if (i === 0) context.moveTo(px, py);
+              else context.lineTo(px, py);
+            }
+            context.closePath();
+          } else {
+            // original / square
+            context.rect(x, y, w, h);
+          }
+        }
+
+        // Draw Background Pill if requested
+        if (bgMode === 'white' || bgMode === 'dark') {
+          ctx.save();
+          createShapePath(ctx, shape, 0);
+          ctx.fillStyle = bgMode === 'white' ? '#ffffff' : '#0f172a';
+          ctx.fill();
+          ctx.strokeStyle = bgMode === 'white' ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.15)';
+          ctx.lineWidth = 8;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Draw Clipped Image
+        ctx.save();
+        const contentPadding = bgMode !== 'none' ? size * 0.12 : 0;
+        createShapePath(ctx, shape, contentPadding);
+        ctx.clip();
+
+        // Calculate aspect ratio containment
+        const imgAspect = img.width / img.height;
+        let drawW = size - (contentPadding * 2);
+        let drawH = size - (contentPadding * 2);
+        let drawX = contentPadding;
+        let drawY = contentPadding;
+
+        if (shape === 'circle' || shape === 'diamond' || shape === 'hexagon') {
+          if (imgAspect > 1) {
+            drawW = (size - contentPadding * 2);
+            drawH = drawW / imgAspect;
+            drawY = cy - (drawH / 2);
+          } else {
+            drawH = (size - contentPadding * 2);
+            drawW = drawH * imgAspect;
+            drawX = cx - (drawW / 2);
+          }
+        } else {
+          if (imgAspect > 1) {
+            drawH = size - (contentPadding * 2);
+            drawW = drawH * imgAspect;
+            drawX = cx - (drawW / 2);
+          } else {
+            drawW = size - (contentPadding * 2);
+            drawH = drawW / imgAspect;
+            drawY = cy - (drawH / 2);
+          }
+        }
+
+        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        ctx.restore();
+
+        const resultDataUrl = canvas.toDataURL('image/png');
+        if (this.logoShapeCache.size > 30) {
+          const firstKey = this.logoShapeCache.keys().next().value;
+          this.logoShapeCache.delete(firstKey);
+        }
+        this.logoShapeCache.set(cacheKey, resultDataUrl);
+        resolve(resultDataUrl);
+      };
+
+      img.onerror = () => {
+        resolve(imageSource);
+      };
+
+      img.src = imageSource;
+    });
+  }
+
+  async applyCurrentLogo() {
+    if (!this.rawLogoSource) {
+      this.generator.update({ image: '' });
+      return;
+    }
+
+    const shape = this.selectedLogoShape || 'original';
+    const bgMode = this.selectedLogoBg || 'none';
+    const shapedDataUrl = await this.processLogoShape(this.rawLogoSource, shape, bgMode);
+    this.generator.update({ image: shapedDataUrl });
+  }
+
+  // ==========================================
   // Brand Logos & Presets
   // ==========================================
   renderBrandPresets() {
@@ -112,17 +267,19 @@ class App {
         if (this.selectedLogoPreset === brand) {
           // Deselect
           this.selectedLogoPreset = null;
+          this.rawLogoSource = null;
           btn.classList.remove('active');
           document.getElementById('btnRemoveLogo').style.display = 'none';
-          this.generator.update({ image: '' });
+          this.applyCurrentLogo();
           this.showToast('Brand logo removed', 'info');
         } else {
           // Select
           grid.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.selectedLogoPreset = brand;
+          this.rawLogoSource = BrandLogos[brand];
           document.getElementById('btnRemoveLogo').style.display = 'inline-flex';
-          this.generator.update({ image: BrandLogos[brand] });
+          this.applyCurrentLogo();
           this.showToast(`Applied ${brand.toUpperCase()} logo`, 'success');
         }
       });
@@ -276,18 +433,21 @@ class App {
     }
     if (preset.logoBrand && BrandLogos[preset.logoBrand]) {
       this.selectedLogoPreset = preset.logoBrand;
+      this.rawLogoSource = BrandLogos[preset.logoBrand];
       const activeBrandBtn = brandGrid ? brandGrid.querySelector(`[data-brand="${preset.logoBrand}"]`) : null;
       if (activeBrandBtn) activeBrandBtn.classList.add('active');
       document.getElementById('btnRemoveLogo').style.display = 'inline-flex';
-      this.generator.update({ image: BrandLogos[preset.logoBrand] });
+      this.applyCurrentLogo();
     } else if (preset.image) {
       this.selectedLogoPreset = null;
+      this.rawLogoSource = preset.image;
       document.getElementById('btnRemoveLogo').style.display = 'inline-flex';
-      this.generator.update({ image: preset.image });
+      this.applyCurrentLogo();
     } else {
       this.selectedLogoPreset = null;
+      this.rawLogoSource = null;
       document.getElementById('btnRemoveLogo').style.display = 'none';
-      this.generator.update({ image: '' });
+      this.applyCurrentLogo();
     }
 
     // Frame
@@ -313,26 +473,76 @@ class App {
   // ==========================================
   // Event Binding
   // ==========================================
+  switchDataType(targetType) {
+    if (!targetType) return;
+    this.currentType = targetType;
+
+    const dialogItem = document.querySelector(`.menu-hub-item[data-choose-type="${targetType}"]`);
+    const title = dialogItem ? dialogItem.querySelector('.menu-hub-title').textContent : targetType.toUpperCase();
+
+    const activeLabel = document.getElementById('activeTypeMenuLabel');
+    if (activeLabel) {
+      activeLabel.textContent = `MENU • ${title}`;
+    }
+
+    // Toggle active state on quick tab buttons
+    document.querySelectorAll('.type-tab-btn[data-type]').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.type === targetType);
+    });
+
+    // Switch form panel
+    document.querySelectorAll('#contentPanels .form-panel').forEach(panel => {
+      panel.style.display = panel.dataset.panel === targetType ? 'block' : 'none';
+    });
+
+    this.triggerUpdate();
+  }
+
   bindEvents() {
     // 1. Data Type Switching
     const typeTabs = document.getElementById('typeTabs');
-    typeTabs.addEventListener('click', (e) => {
-      const btn = e.target.closest('.type-tab-btn');
-      if (!btn) return;
-
-      typeTabs.querySelectorAll('.type-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      const targetType = btn.dataset.type;
-      this.currentType = targetType;
-
-      // Switch form panel
-      document.querySelectorAll('#contentPanels .form-panel').forEach(panel => {
-        panel.style.display = panel.dataset.panel === targetType ? 'block' : 'none';
+    if (typeTabs) {
+      typeTabs.addEventListener('click', (e) => {
+        const btn = e.target.closest('.type-tab-btn');
+        if (!btn || !btn.dataset.type) return;
+        this.switchDataType(btn.dataset.type);
       });
+    }
 
-      this.triggerUpdate();
-    });
+    // Menu Dialog Openers (Header Center + Type Bar Menu Button)
+    const btnOpenMainMenu = document.getElementById('btnOpenMainMenu');
+    if (btnOpenMainMenu) {
+      btnOpenMainMenu.addEventListener('click', () => this.openModal('qrTypesMenuModal'));
+    }
+
+    const btnOpenTypeMenuDialog = document.getElementById('btnOpenTypeMenuDialog');
+    if (btnOpenTypeMenuDialog) {
+      btnOpenTypeMenuDialog.addEventListener('click', () => this.openModal('qrTypesMenuModal'));
+    }
+
+    // Menu Dialog Item Selection
+    const qrTypeModalGrid = document.getElementById('qrTypeModalGrid');
+    if (qrTypeModalGrid) {
+      qrTypeModalGrid.addEventListener('click', (e) => {
+        const item = e.target.closest('.menu-hub-item');
+        if (!item || !item.dataset.chooseType) return;
+
+        const chosenType = item.dataset.chooseType;
+        this.switchDataType(chosenType);
+        this.closeModal('qrTypesMenuModal');
+
+        const titleText = item.querySelector('.menu-hub-title')?.textContent || chosenType.toUpperCase();
+        this.showToast(`Selected ${titleText}`, 'success');
+      });
+    }
+
+    const btnOpenExpiryFromMenu = document.getElementById('btnOpenExpiryFromMenu');
+    if (btnOpenExpiryFromMenu) {
+      btnOpenExpiryFromMenu.addEventListener('click', () => {
+        this.closeModal('qrTypesMenuModal');
+        this.openModal('expiryModal');
+      });
+    }
 
     // 2. Form Inputs Live Listeners
     const contentPanels = document.getElementById('contentPanels');
@@ -411,7 +621,7 @@ class App {
     document.getElementById('frameTextInput').addEventListener('input', () => this.triggerUpdate());
     document.getElementById('errorCorrectionSelect').addEventListener('change', () => this.triggerUpdate());
 
-    // 6. Custom Logo Upload
+    // 6. Custom Logo Upload & Shaping Controls
     const logoFileInput = document.getElementById('logoFileInput');
     document.getElementById('btnUploadLogo').addEventListener('click', () => logoFileInput.click());
     logoFileInput.addEventListener('change', (e) => {
@@ -423,9 +633,10 @@ class App {
         // Deselect brand icons
         document.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
         this.selectedLogoPreset = null;
+        this.rawLogoSource = ev.target.result;
 
         document.getElementById('btnRemoveLogo').style.display = 'inline-flex';
-        this.generator.update({ image: ev.target.result });
+        this.applyCurrentLogo();
         this.showToast('Custom logo uploaded successfully!', 'success');
       };
       reader.readAsDataURL(file);
@@ -435,10 +646,126 @@ class App {
       logoFileInput.value = '';
       document.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
       this.selectedLogoPreset = null;
+      this.rawLogoSource = null;
       document.getElementById('btnRemoveLogo').style.display = 'none';
-      this.generator.update({ image: '' });
+      this.applyCurrentLogo();
       this.showToast('Logo removed', 'info');
     });
+
+    // Logo Shape Selection
+    this.bindTileSelection('logoShapeTiles', (val) => {
+      this.selectedLogoShape = val || 'original';
+      this.applyCurrentLogo();
+    });
+
+    // Logo Background Fill Selection
+    document.querySelectorAll('input[name="logoBgMode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        this.selectedLogoBg = e.target.value;
+        this.applyCurrentLogo();
+      });
+    });
+
+    // 6b. QR Code Expiration Controls
+    const enableExpiryToggle = document.getElementById('enableExpiryToggle');
+    const expiryControlsContainer = document.getElementById('expiryControlsContainer');
+    const expiryDateTimeInput = document.getElementById('expiryDateTimeInput');
+    const expiryCustomMessage = document.getElementById('expiryCustomMessage');
+    const expiryFallbackUrl = document.getElementById('expiryFallbackUrl');
+
+    if (enableExpiryToggle) {
+      enableExpiryToggle.addEventListener('change', (e) => {
+        if (expiryControlsContainer) {
+          expiryControlsContainer.style.display = e.target.checked ? 'flex' : 'none';
+        }
+        if (e.target.checked && expiryDateTimeInput && !expiryDateTimeInput.value) {
+          const d = new Date();
+          d.setDate(d.getDate() + 7);
+          expiryDateTimeInput.value = this.formatDateTimeLocal(d);
+        }
+        this.updateExpiryStatusBadge();
+        this.triggerUpdate();
+      });
+    }
+
+    if (expiryDateTimeInput) {
+      expiryDateTimeInput.addEventListener('input', () => {
+        this.updateExpiryStatusBadge();
+        this.triggerUpdate();
+      });
+      expiryDateTimeInput.addEventListener('change', () => {
+        this.updateExpiryStatusBadge();
+        this.triggerUpdate();
+      });
+    }
+
+    if (expiryCustomMessage) {
+      expiryCustomMessage.addEventListener('input', () => this.triggerUpdate());
+    }
+    if (expiryFallbackUrl) {
+      expiryFallbackUrl.addEventListener('input', () => this.triggerUpdate());
+    }
+
+    // Quick duration presets
+    document.querySelectorAll('.btn-preset-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const now = new Date();
+        if (btn.dataset.presetHours) {
+          now.setHours(now.getHours() + parseInt(btn.dataset.presetHours, 10));
+        } else if (btn.dataset.presetDays) {
+          now.setDate(now.getDate() + parseInt(btn.dataset.presetDays, 10));
+        } else if (btn.dataset.presetEndyear) {
+          now.setMonth(11);
+          now.setDate(31);
+          now.setHours(23, 59, 0, 0);
+        }
+        if (expiryDateTimeInput) {
+          expiryDateTimeInput.value = this.formatDateTimeLocal(now);
+          if (enableExpiryToggle && !enableExpiryToggle.checked) {
+            enableExpiryToggle.checked = true;
+            if (expiryControlsContainer) expiryControlsContainer.style.display = 'flex';
+          }
+          this.updateExpiryStatusBadge();
+          this.triggerUpdate();
+          this.showToast(`Set expiration to ${now.toLocaleDateString()}`, 'info');
+        }
+      });
+    });
+
+    const btnTestExpiryPage = document.getElementById('btnTestExpiryPage');
+    if (btnTestExpiryPage) {
+      btnTestExpiryPage.addEventListener('click', () => {
+        const payload = this.buildCurrentPayload();
+        if (payload && payload.includes('expire.html')) {
+          window.open(payload, '_blank');
+        } else {
+          const d = new Date();
+          d.setDate(d.getDate() + 7);
+          const currentUrl = document.getElementById('inputUrl')?.value || 'https://example.com';
+          const testUrl = `expire.html?target=${encodeURIComponent(currentUrl)}&exp=${d.getTime()}&msg=${encodeURIComponent('Limited Time Promotion')}`;
+          window.open(testUrl, '_blank');
+        }
+      });
+    }
+
+    // Expiration Modal Trigger & Apply
+    const btnOpenExpiryModal = document.getElementById('btnOpenExpiryModal');
+    if (btnOpenExpiryModal) {
+      btnOpenExpiryModal.addEventListener('click', () => this.openModal('expiryModal'));
+    }
+
+    const btnApplyExpiryModal = document.getElementById('btnApplyExpiryModal');
+    if (btnApplyExpiryModal) {
+      btnApplyExpiryModal.addEventListener('click', () => {
+        this.closeModal('expiryModal');
+        const isEnabled = document.getElementById('enableExpiryToggle')?.checked;
+        if (isEnabled) {
+          this.showToast('Expiration date updated successfully!', 'success');
+        } else {
+          this.showToast('QR set to permanent (no expiration)', 'info');
+        }
+      });
+    }
 
     // 7. Export Buttons
     document.getElementById('btnDownloadPng').addEventListener('click', () => this.handleExport('png'));
@@ -543,13 +870,20 @@ class App {
   }
 
   // ==========================================
-  // Update & Payload Generation
+  // Update & Payload Generation (Optimized RAF Debounce)
   // ==========================================
   triggerUpdate() {
-    clearTimeout(this.updateDebounceTimer);
+    if (this.updateDebounceTimer) {
+      clearTimeout(this.updateDebounceTimer);
+    }
+    if (this.updateRafId) {
+      cancelAnimationFrame(this.updateRafId);
+    }
     this.updateDebounceTimer = setTimeout(() => {
-      this.generateQRCodeFromUI();
-    }, 60);
+      this.updateRafId = requestAnimationFrame(() => {
+        this.generateQRCodeFromUI();
+      });
+    }, 25);
   }
 
   generateQRCodeFromUI() {
@@ -643,6 +977,57 @@ class App {
     this.updateScannabilityScore();
   }
 
+  formatDateTimeLocal(date) {
+    const pad = (n) => String(n).padStart(2, '0');
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const mins = pad(date.getMinutes());
+    return `${year}-${month}-${day}T${hours}:${mins}`;
+  }
+
+  updateExpiryStatusBadge() {
+    const enableExpiry = document.getElementById('enableExpiryToggle')?.checked;
+    const dtInput = document.getElementById('expiryDateTimeInput');
+    const badge = document.getElementById('expiryLiveStatusBadge');
+    const text = document.getElementById('expiryLiveStatusText');
+    const statusSnippet = document.getElementById('urlExpiryStatusSnippet');
+
+    if (!enableExpiry || !dtInput || !dtInput.value) {
+      if (badge) badge.style.display = 'none';
+      if (statusSnippet) statusSnippet.innerHTML = '<span style="color: var(--text-muted);">Standard permanent QR (Never expires)</span>';
+      return;
+    }
+
+    const expiryTimestamp = new Date(dtInput.value).getTime();
+    const diff = expiryTimestamp - Date.now();
+    const formattedDate = new Date(expiryTimestamp).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+
+    if (badge) badge.style.display = 'inline-flex';
+
+    if (diff > 0) {
+      if (badge) badge.className = 'status-pill status-pill-active';
+      const days = Math.floor(diff / (24 * 3600 * 1000));
+      const hours = Math.floor((diff % (24 * 3600 * 1000)) / (3600 * 1000));
+      const remainingStr = days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
+      if (text) text.textContent = `Active • Expires in ${days > 0 ? `${days}d ${hours}h` : `${hours}h`}`;
+      if (statusSnippet) {
+        statusSnippet.innerHTML = `<span style="color: var(--accent-emerald); font-weight: 600;">Active • Expires ${formattedDate} (${remainingStr})</span>`;
+      }
+    } else {
+      if (badge) badge.className = 'status-pill status-pill-expired';
+      if (text) text.textContent = 'Expired • Link is currently inactive';
+      if (statusSnippet) {
+        statusSnippet.innerHTML = `<span style="color: var(--accent-rose); font-weight: 600;">Expired on ${formattedDate}</span>`;
+      }
+    }
+  }
+
   getActiveTileVal(containerId) {
     const active = document.querySelector(`#${containerId} .style-tile.active`);
     return active ? active.dataset.val : null;
@@ -651,12 +1036,17 @@ class App {
   buildCurrentPayload() {
     switch (this.currentType) {
       case 'url':
+        const enableExpiry = document.getElementById('enableExpiryToggle')?.checked || false;
         return DataBuilders.url({
           url: document.getElementById('inputUrl').value,
           utmSource: document.getElementById('utmSource').value,
           utmMedium: document.getElementById('utmMedium').value,
           utmCampaign: document.getElementById('utmCampaign').value,
-          utmContent: document.getElementById('utmContent').value
+          utmContent: document.getElementById('utmContent').value,
+          enableExpiry: enableExpiry,
+          expiryDateTime: document.getElementById('expiryDateTimeInput')?.value,
+          expiryMessage: document.getElementById('expiryCustomMessage')?.value,
+          expiryFallback: document.getElementById('expiryFallbackUrl')?.value
         });
 
       case 'vcard':

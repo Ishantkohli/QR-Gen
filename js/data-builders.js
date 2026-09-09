@@ -3,7 +3,7 @@
  */
 
 export const DataBuilders = {
-  // 1. URL with optional UTM parameters
+  // 1. URL with optional UTM parameters & Expiration routing
   url(data) {
     let urlStr = data.url ? data.url.trim() : '';
     if (!urlStr) return '';
@@ -18,10 +18,36 @@ export const DataBuilders = {
       if (data.utmCampaign) urlObj.searchParams.set('utm_campaign', data.utmCampaign.trim());
       if (data.utmTerm) urlObj.searchParams.set('utm_term', data.utmTerm.trim());
       if (data.utmContent) urlObj.searchParams.set('utm_content', data.utmContent.trim());
-      return urlObj.toString();
+      urlStr = urlObj.toString();
     } catch (e) {
-      return urlStr;
+      // Keep original urlStr
     }
+
+    // Check if Expiration is enabled
+    if (data.enableExpiry && data.expiryDateTime) {
+      const expiryTimestamp = new Date(data.expiryDateTime).getTime();
+      if (!isNaN(expiryTimestamp) && expiryTimestamp > 0) {
+        let baseOrigin = 'https://qr-studio.tech/';
+        if (typeof window !== 'undefined' && window.location && window.location.href) {
+          const loc = window.location;
+          if (loc.protocol.startsWith('http')) {
+            baseOrigin = loc.origin + loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+          }
+        }
+        const expireUrl = new URL('expire.html', baseOrigin);
+        expireUrl.searchParams.set('target', urlStr);
+        expireUrl.searchParams.set('exp', expiryTimestamp.toString());
+        if (data.expiryMessage && data.expiryMessage.trim()) {
+          expireUrl.searchParams.set('msg', data.expiryMessage.trim());
+        }
+        if (data.expiryFallback && data.expiryFallback.trim()) {
+          expireUrl.searchParams.set('fallback', data.expiryFallback.trim());
+        }
+        return expireUrl.toString();
+      }
+    }
+
+    return urlStr;
   },
 
   // 2. Free Text / Markdown / Plain Notes
@@ -170,25 +196,28 @@ export const DataBuilders = {
 
   // 12. Social Media Hub Multi-Link / Profiles
   social(data) {
-    if (data.platform === 'instagram' && data.username) {
-      return `https://instagram.com/${data.username.replace('@', '')}`;
+    let u = (data.username || '').trim();
+    if (!u) return '';
+    if (/^https?:\/\//i.test(u)) return u;
+
+    const handle = u.replace(/^@/, '');
+    switch (data.platform) {
+      case 'instagram': return `https://instagram.com/${handle}`;
+      case 'twitter': return `https://x.com/${handle}`;
+      case 'linkedin': return `https://linkedin.com/in/${handle}`;
+      case 'youtube': return `https://youtube.com/@${handle}`;
+      case 'tiktok': return `https://tiktok.com/@${handle}`;
+      case 'github': return `https://github.com/${handle}`;
+      case 'facebook': return `https://facebook.com/${handle}`;
+      case 'telegram': return `https://t.me/${handle}`;
+      case 'discord': return handle.includes('/') ? `https://discord.gg/${handle.split('/').pop()}` : `https://discord.gg/${handle}`;
+      case 'spotify': return handle.startsWith('http') ? handle : `https://open.spotify.com/user/${handle}`;
+      case 'twitch': return `https://twitch.tv/${handle}`;
+      case 'pinterest': return `https://pinterest.com/${handle}`;
+      case 'snapchat': return `https://snapchat.com/add/${handle}`;
+      case 'reddit': return `https://reddit.com/u/${handle}`;
+      default: return `https://${handle}`;
     }
-    if (data.platform === 'twitter' && data.username) {
-      return `https://x.com/${data.username.replace('@', '')}`;
-    }
-    if (data.platform === 'linkedin' && data.username) {
-      return `https://linkedin.com/in/${data.username}`;
-    }
-    if (data.platform === 'youtube' && data.username) {
-      return `https://youtube.com/@${data.username.replace('@', '')}`;
-    }
-    if (data.platform === 'github' && data.username) {
-      return `https://github.com/${data.username}`;
-    }
-    if (data.platform === 'tiktok' && data.username) {
-      return `https://tiktok.com/@${data.username.replace('@', '')}`;
-    }
-    return data.username || '';
   },
 
   // 13. App Stores (Dispatcher or Direct Link)

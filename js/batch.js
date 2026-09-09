@@ -64,7 +64,11 @@ export class BatchGenerator {
         const tempQR = new QRCodeStyling({ ...opts, type: 'canvas' });
         const tempDiv = document.createElement('div');
         tempQR.append(tempDiv);
-        await new Promise(r => setTimeout(r, 40));
+        if (tempQR._canvasDrawingPromise) {
+          await tempQR._canvasDrawingPromise;
+        } else {
+          await new Promise(r => requestAnimationFrame(r));
+        }
         
         let canvas = tempDiv.querySelector('canvas');
         if (this.generator.currentOptions.frame && this.generator.currentOptions.frame.style !== 'none') {

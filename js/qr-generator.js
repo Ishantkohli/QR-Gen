@@ -133,24 +133,32 @@ export class QRGenerator {
 
   async render() {
     if (!this.qrCode || !this.container) return;
-    this.container.innerHTML = '';
 
-    // Render raw QR code inside temporary or container
-    const rawWrapper = document.createElement('div');
-    rawWrapper.className = 'qr-raw-wrapper';
-    this.qrCode.append(rawWrapper);
+    if (!this._rawWrapper) {
+      this._rawWrapper = document.createElement('div');
+      this._rawWrapper.className = 'qr-raw-wrapper';
+      this.qrCode.append(this._rawWrapper);
+    }
 
-    // Wait slightly for canvas render
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Wait on drawing promise or frame
+    if (this.qrCode._canvasDrawingPromise) {
+      await this.qrCode._canvasDrawingPromise;
+    } else {
+      await new Promise(r => requestAnimationFrame(r));
+    }
 
     // If frame is enabled, render framed version
     if (this.currentOptions.frame && this.currentOptions.frame.style !== 'none') {
       const framedCanvas = await this.generateFramedCanvas(320);
-      this.container.innerHTML = '';
-      this.container.appendChild(framedCanvas);
+      if (framedCanvas) {
+        this.container.innerHTML = '';
+        this.container.appendChild(framedCanvas);
+      }
     } else {
-      this.container.innerHTML = '';
-      this.container.appendChild(rawWrapper);
+      if (this.container.firstChild !== this._rawWrapper) {
+        this.container.innerHTML = '';
+        this.container.appendChild(this._rawWrapper);
+      }
     }
   }
 
@@ -158,7 +166,6 @@ export class QRGenerator {
    * Generates a framed canvas with high quality rendering
    */
   async generateFramedCanvas(targetSize = 1024) {
-    // Generate raw canvas at requested resolution
     const tempOpts = {
       ...this.getCleanLibraryOptions(),
       width: targetSize,
@@ -167,9 +174,14 @@ export class QRGenerator {
     const tempQR = new QRCodeStyling(tempOpts);
     const tempDiv = document.createElement('div');
     tempQR.append(tempDiv);
-    await new Promise(r => setTimeout(r, 60));
 
-    const rawCanvas = tempDiv.querySelector('canvas');
+    if (tempQR._canvasDrawingPromise) {
+      await tempQR._canvasDrawingPromise;
+    } else {
+      await new Promise(r => requestAnimationFrame(r));
+    }
+
+    const rawCanvas = tempDiv.querySelector('canvas') || (tempQR._canvas ? tempQR._canvas.getCanvas() : null);
     if (!rawCanvas) return null;
 
     const frame = this.currentOptions.frame || { style: 'none' };

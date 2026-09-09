@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="google-site-verification" content="L6ixQ6KcJME-vYhApsI6z0-HAyjOCFWmNFgum7OV4uM" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>QR Studio Pro</title>
   <meta name="description"
     content="Generate beautiful, customizable, high-resolution QR codes with logos, gradients, custom frames, batch export, and real-time scannability health check.">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#000000">
 
   <!-- Resource Hints & DNS Prefetching -->
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -23,17 +23,12 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- Core Libraries -->
-  <!-- qr-code-styling for rich shapes, gradients & logos -->
+  <!-- Core Libraries (Optimized for instant paint) -->
   <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- JSZip for Bulk Generation -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- jsPDF for PDF Flyer Exports -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Confetti for export joy -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
@@ -48,6 +43,14 @@
         <span>QR Studio<span class="brand-badge">PRO</span></span>
       </a>
 
+      <!-- Center Navigation Menu Button -->
+      <div class="header-center">
+        <button id="btnOpenMainMenu" class="nav-btn center-menu-btn" title="Open Menu & Tools Dialog">
+          <i data-lucide="layout-grid"></i>
+          <span>Menu</span>
+        </button>
+      </div>
+
       <div class="header-actions">
         <button id="btnOpenPresets" class="nav-btn" title="Choose design templates">
           <i data-lucide="sparkles"></i>
@@ -58,8 +61,6 @@
           <i data-lucide="layers"></i>
           <span>Bulk&nbsp;/&nbsp;Batch</span>
         </button>
-
-
 
         <button id="btnOpenHistory" class="nav-btn" title="View past generated QR codes">
           <i data-lucide="history"></i>
@@ -90,20 +91,19 @@
     <!-- Left Column: Generator Configuration & Design Studio -->
     <div class="generator-left-col">
 
-      <!-- 1. Data Type Selector Tabs -->
+      <!-- 1. Data Type Selector (Centered MENU & Social Media Buttons) -->
       <div class="type-selector-bar" id="typeTabs">
-        <button class="type-tab-btn active" data-type="url"><i data-lucide="globe"></i> URL&nbsp;/&nbsp;Link</button>
-        <button class="type-tab-btn" data-type="vcard"><i data-lucide="contact"></i> vCard&nbsp;Contact</button>
-        <button class="type-tab-btn" data-type="wifi"><i data-lucide="wifi"></i> Wi-Fi</button>
-        <button class="type-tab-btn" data-type="text"><i data-lucide="file-text"></i> Free&nbsp;Text</button>
-        <button class="type-tab-btn" data-type="email"><i data-lucide="mail"></i> Email</button>
-        <button class="type-tab-btn" data-type="whatsapp"><i data-lucide="message-circle"></i> WhatsApp</button>
-        <button class="type-tab-btn" data-type="sms"><i data-lucide="smartphone"></i> SMS&nbsp;&&nbsp;Call</button>
-        <button class="type-tab-btn" data-type="location"><i data-lucide="map-pin"></i> Location</button>
-        <button class="type-tab-btn" data-type="event"><i data-lucide="calendar"></i> Event</button>
-        <button class="type-tab-btn" data-type="crypto"><i data-lucide="coins"></i> Crypto&nbsp;&&nbsp;UPI</button>
-        <button class="type-tab-btn" data-type="social"><i data-lucide="share-2"></i> Social&nbsp;Profiles</button>
-        <button class="type-tab-btn" data-type="app"><i data-lucide="store"></i> App&nbsp;Store</button>
+        <button type="button" class="type-tab-btn menu-type-btn menu-main-btn" id="btnOpenTypeMenuDialog"
+          title="Choose QR Code Type from Menu">
+          <i data-lucide="layout-grid"></i>
+          <span id="activeTypeMenuLabel">MENU • URL / Link</span>
+          <i data-lucide="chevron-down" style="width: 15px; height: 15px; opacity: 0.8; margin-left: 2px;"></i>
+        </button>
+        <a href="Media/media.html" class="type-tab-btn social-main-btn" id="btnQuickSocialMedia"
+          title="Visit Social Media Hub (media.html)">
+          <i data-lucide="share-2"></i>
+          <span>My Social Media</span>
+        </a>
       </div>
 
       <!-- 2. Content Input Panels -->
@@ -147,6 +147,29 @@
                   </div>
                 </div>
               </details>
+            </div>
+
+            <!-- Expiration Trigger Card -->
+            <div class="form-group full-width" style="margin-top: 0.25rem;">
+              <div
+                style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 0.9rem; flex-wrap: wrap; gap: 0.6rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <div
+                    style="width: 32px; height: 32px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); display: flex; align-items: center; justify-content: center; color: var(--accent-amber);">
+                    <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">QR Expiration & Time
+                      Lock</div>
+                    <div id="urlExpiryStatusSnippet" style="font-size: 0.75rem; color: var(--text-muted);">Standard
+                      permanent QR (Never expires)</div>
+                  </div>
+                </div>
+                <button type="button" id="btnOpenExpiryModal" class="btn-secondary"
+                  style="font-size: 0.8rem; padding: 0.4rem 0.85rem; gap: 0.4rem;">
+                  <i data-lucide="sliders"></i> Set Expiration Date
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -372,19 +395,27 @@
         <div class="form-panel" data-panel="social" style="display: none;">
           <div class="form-grid">
             <div class="form-group">
-              <label class="form-label" for="socialPlatform">Social Platform</label>
+              <label class="form-label" for="socialPlatform">Social Platform / Network</label>
               <select id="socialPlatform" class="form-select">
                 <option value="instagram">Instagram</option>
                 <option value="twitter">X (Twitter)</option>
-                <option value="linkedin">LinkedIn</option>
                 <option value="youtube">YouTube</option>
-                <option value="github">GitHub</option>
                 <option value="tiktok">TikTok</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="facebook">Facebook</option>
+                <option value="github">GitHub</option>
+                <option value="telegram">Telegram</option>
+                <option value="discord">Discord Invite</option>
+                <option value="spotify">Spotify</option>
+                <option value="twitch">Twitch</option>
+                <option value="pinterest">Pinterest</option>
+                <option value="snapchat">Snapchat</option>
+                <option value="reddit">Reddit</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label" for="socialUsername">Username / Channel</label>
-              <input type="text" id="socialUsername" class="form-input" placeholder="username">
+              <label class="form-label" for="socialUsername">Username, Handle or Link</label>
+              <input type="text" id="socialUsername" class="form-input" placeholder="e.g. username or https://...">
             </div>
           </div>
         </div>
@@ -614,6 +645,56 @@
                 <label class="form-label">Or Pick From Popular Brand Icons</label>
                 <div class="logo-presets-grid" id="brandPresetsGrid">
                   <!-- Injected via app.js -->
+                </div>
+              </div>
+
+              <!-- Logo Shape Selector -->
+              <div class="form-group full-width" id="logoShapeGroup">
+                <label class="form-label">Logo / Image Shape</label>
+                <div class="style-tiles-grid" id="logoShapeTiles">
+                  <div class="style-tile active" data-val="original" title="Original square/rectangle crop">
+                    <div class="style-tile-icon"><i data-lucide="square"></i></div>
+                    <span class="style-tile-label">Original</span>
+                  </div>
+                  <div class="style-tile" data-val="circle" title="Circular mask crop">
+                    <div class="style-tile-icon"><i data-lucide="circle"></i></div>
+                    <span class="style-tile-label">Circle</span>
+                  </div>
+                  <div class="style-tile" data-val="rounded" title="Rounded corners crop">
+                    <div class="style-tile-icon"><i data-lucide="app-window"></i></div>
+                    <span class="style-tile-label">Rounded</span>
+                  </div>
+                  <div class="style-tile" data-val="squircle" title="Modern iOS superellipse">
+                    <div class="style-tile-icon"><i data-lucide="sparkle"></i></div>
+                    <span class="style-tile-label">Squircle</span>
+                  </div>
+                  <div class="style-tile" data-val="diamond" title="Diamond rhombus shape">
+                    <div class="style-tile-icon"><i data-lucide="gem"></i></div>
+                    <span class="style-tile-label">Diamond</span>
+                  </div>
+                  <div class="style-tile" data-val="hexagon" title="Hexagon badge shape">
+                    <div class="style-tile-icon"><i data-lucide="hexagon"></i></div>
+                    <span class="style-tile-label">Hexagon</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Logo Background Fill -->
+              <div class="form-group full-width" id="logoBgGroup">
+                <label class="form-label">Logo Contrast Background Pill</label>
+                <div class="radio-pill-group">
+                  <label class="radio-pill-item">
+                    <input type="radio" name="logoBgMode" value="none" checked>
+                    <span class="radio-pill-label">Transparent</span>
+                  </label>
+                  <label class="radio-pill-item">
+                    <input type="radio" name="logoBgMode" value="white">
+                    <span class="radio-pill-label">White Card</span>
+                  </label>
+                  <label class="radio-pill-item">
+                    <input type="radio" name="logoBgMode" value="dark">
+                    <span class="radio-pill-label">Dark Card</span>
+                  </label>
                 </div>
               </div>
 
@@ -990,6 +1071,258 @@
       <div class="modal-body">
         <div id="historyListContainer">
           <!-- Injected via history.js & app.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Expiration & Time Lock Modal Dialog -->
+  <div class="modal-overlay" id="expiryModal">
+    <div class="modal-window" style="max-width: 540px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="clock" style="color: var(--accent-amber);"></i> Set QR Expiration Date & Time
+        </div>
+        <button class="modal-close-btn" data-close="expiryModal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem; line-height: 1.5;">
+          Set a specific expiration year, date, and time. Before this date, the QR code functions normally. After
+          expiration, visitors see an expired alert screen with your custom message.
+        </p>
+
+        <!-- Master Switch -->
+        <div
+          style="background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
+          <label class="radio-pill-label"
+            style="width: 100%; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <div>
+              <div style="font-weight: 700; color: var(--text-primary); font-size: 0.925rem;">Enable QR Expiration</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">Toggle to make this QR code time-locked</div>
+            </div>
+            <input type="checkbox" id="enableExpiryToggle"
+              style="width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary);">
+          </label>
+        </div>
+
+        <div id="expiryControlsContainer" style="display: none; flex-direction: column; gap: 1rem;">
+          <!-- Expiration Date & Time -->
+          <div class="form-group full-width">
+            <label class="form-label" for="expiryDateTimeInput">Expiration Date & Time (Year, Month, Day, Time)</label>
+            <input type="datetime-local" id="expiryDateTimeInput" class="form-input"
+              style="font-size: 0.95rem; font-family: var(--font-mono);">
+          </div>
+
+          <!-- Quick Duration Presets -->
+          <div class="form-group full-width">
+            <label class="form-label">Quick Duration Presets</label>
+            <div class="quick-presets-row">
+              <button type="button" class="btn-preset-pill" data-preset-hours="24">+24 Hours</button>
+              <button type="button" class="btn-preset-pill" data-preset-days="7">+7 Days</button>
+              <button type="button" class="btn-preset-pill" data-preset-days="30">+30 Days</button>
+              <button type="button" class="btn-preset-pill" data-preset-days="90">+3 Months</button>
+              <button type="button" class="btn-preset-pill" data-preset-endyear="true">End of Year</button>
+            </div>
+          </div>
+
+          <!-- Custom Message -->
+          <div class="form-group full-width">
+            <label class="form-label" for="expiryCustomMessage">Custom Notice After Expiration</label>
+            <input type="text" id="expiryCustomMessage" class="form-input"
+              placeholder="e.g. This promotion / event has expired.">
+          </div>
+
+          <!-- Fallback Link -->
+          <div class="form-group full-width">
+            <label class="form-label" for="expiryFallbackUrl">Fallback Link (Optional alternative URL after
+              expiration)</label>
+            <input type="url" id="expiryFallbackUrl" class="form-input"
+              placeholder="https://yourwebsite.com/contact-or-expired">
+          </div>
+
+          <!-- Status Indicator & Test -->
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-subtle); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-top: 0.25rem; flex-wrap: wrap; gap: 0.5rem;">
+            <div id="expiryLiveStatusBadge" class="status-pill status-pill-active">
+              <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+              <span id="expiryLiveStatusText">Status: Active</span>
+            </div>
+            <button type="button" id="btnTestExpiryPage" class="btn-secondary"
+              style="font-size: 0.78rem; padding: 0.35rem 0.75rem;">
+              <i data-lucide="external-link"></i> Preview Expiry Landing
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+          <button type="button" class="btn-primary" id="btnApplyExpiryModal" style="flex: 1; justify-content: center;">
+            <i data-lucide="check"></i> Save & Apply
+          </button>
+          <button type="button" class="btn-secondary modal-close-btn" data-close="expiryModal">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. All QR Types & Tools Dialog Box Modal -->
+  <div class="modal-overlay" id="qrTypesMenuModal">
+    <div class="modal-window" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i data-lucide="layout-grid" style="color: var(--primary);"></i> QR Code Menu & Types
+        </div>
+        <button class="modal-close-btn" data-close="qrTypesMenuModal"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Select any QR payload type or advanced tool to configure:
+        </p>
+
+        <div class="menu-hub-grid" id="qrTypeModalGrid">
+          <div class="menu-hub-item" data-choose-type="url">
+            <div class="menu-hub-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary);">
+              <i data-lucide="globe"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Website URL & Expiring Link</div>
+              <div class="menu-hub-desc">Direct website links with optional time-lock expiry & UTM campaigns</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="vcard">
+            <div class="menu-hub-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
+              <i data-lucide="contact"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">vCard Digital Contact</div>
+              <div class="menu-hub-desc">Name, company, phone, email, portfolio & address cards</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="wifi">
+            <div class="menu-hub-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">
+              <i data-lucide="wifi"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Wi-Fi Connect</div>
+              <div class="menu-hub-desc">Instant wireless network login without typing passwords</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="text">
+            <div class="menu-hub-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--accent-purple);">
+              <i data-lucide="file-text"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Plain Text & Notes</div>
+              <div class="menu-hub-desc">Custom message, code snippets, notes, or markdown</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="whatsapp">
+            <div class="menu-hub-icon" style="background: rgba(34, 197, 94, 0.15); color: #22c55e;">
+              <i data-lucide="message-circle"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">WhatsApp Chat</div>
+              <div class="menu-hub-desc">Direct chat initiator with pre-filled message text</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="email">
+            <div class="menu-hub-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);">
+              <i data-lucide="mail"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Email Dispatcher</div>
+              <div class="menu-hub-desc">Pre-filled email recipient, subject header, and message body</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="sms">
+            <div class="menu-hub-icon" style="background: rgba(244, 63, 94, 0.15); color: var(--accent-rose);">
+              <i data-lucide="smartphone"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">SMS & Direct Call</div>
+              <div class="menu-hub-desc">One-tap telephone call or pre-populated SMS text</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="location">
+            <div class="menu-hub-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+              <i data-lucide="map-pin"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Map Location</div>
+              <div class="menu-hub-desc">Google Maps place link or exact GPS coordinates</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="event">
+            <div class="menu-hub-icon" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">
+              <i data-lucide="calendar"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Calendar Event</div>
+              <div class="menu-hub-desc">Schedule event with date, time, location, and description</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="crypto">
+            <div class="menu-hub-icon" style="background: rgba(234, 179, 8, 0.15); color: #eab308;">
+              <i data-lucide="coins"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Crypto & UPI Payments</div>
+              <div class="menu-hub-desc">Bitcoin, Ethereum, Solana, and UPI India pay links</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="social">
+            <div class="menu-hub-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">
+              <i data-lucide="share-2"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">Social Media Profiles</div>
+              <div class="menu-hub-desc">Instagram, X (Twitter), LinkedIn, YouTube, TikTok, GitHub</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="app">
+            <div class="menu-hub-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary);">
+              <i data-lucide="store"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">App Store Links</div>
+              <div class="menu-hub-desc">Apple iOS App Store and Google Play Store dispatcher</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+        </div>
+
+        <div
+          style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn-secondary" id="btnOpenExpiryFromMenu" style="font-size: 0.8rem;">
+            <i data-lucide="clock"></i> Set QR Expiration
+          </button>
+          <button type="button" class="btn-secondary modal-close-btn" data-close="qrTypesMenuModal"
+            style="font-size: 0.8rem;">
+            Close Menu
+          </button>
         </div>
       </div>
     </div>

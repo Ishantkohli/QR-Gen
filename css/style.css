@@ -46,17 +46,17 @@
 }
 
 [data-theme="dark"] {
-  --bg-main: #090d16;
-  --bg-surface: #0f172a;
-  --bg-surface-elevated: #1e293b;
-  --bg-subtle: #131d33;
-  --bg-glass: rgba(15, 23, 42, 0.85);
-  --border-color: #24344d;
-  --border-focus: #60a5fa;
+  --bg-main: #000000;
+  --bg-surface: #09090b;
+  --bg-surface-elevated: #121216;
+  --bg-subtle: #0d0d11;
+  --bg-glass: rgba(0, 0, 0, 0.88);
+  --border-color: #22222a;
+  --border-focus: #3b82f6;
 
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
+  --text-muted: #71717a;
 
   --primary: #3b82f6;
   --primary-hover: #60a5fa;
@@ -108,6 +108,8 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button {
@@ -115,12 +117,16 @@ button {
   border: none;
   background: none;
   transition: var(--transition);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {
   color: var(--primary);
   text-decoration: none;
   transition: var(--transition);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ==========================================================================
@@ -289,20 +295,102 @@ a {
 .type-selector-bar {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  overflow-x: auto;
-  padding-bottom: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
   margin-bottom: 1.25rem;
-  scrollbar-width: thin;
+  width: 100%;
 }
 
-.type-selector-bar::-webkit-scrollbar {
-  height: 4px;
+.menu-type-btn {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
 }
 
-.type-selector-bar::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
+.menu-type-btn:hover {
+  background: var(--bg-surface-elevated);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.menu-main-btn {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #27272a;
+  padding: 0.65rem 1.4rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-main-btn:hover {
+  background: #09090b;
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
+}
+
+.social-main-btn {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #27272a;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.social-main-btn:hover {
+  background: #09090b;
+  border-color: #a855f7;
+  color: #c084fc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.3);
+}
+
+.social-main-btn.active {
+  background: rgba(168, 85, 247, 0.18);
+  border-color: #a855f7;
+  color: #d8b4fe;
+}
+
+.center-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.center-menu-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
 }
 
 .type-tab-btn {
@@ -335,6 +423,79 @@ a {
 .type-tab-btn.active i,
 .type-tab-btn.active svg {
   stroke: #ffffff;
+}
+
+/* ==========================================================================
+   Menu Hub Dialog Grid
+   ========================================================================== */
+.menu-hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  max-height: 62vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.menu-hub-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.menu-hub-item:hover {
+  background: var(--bg-surface);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.menu-hub-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menu-hub-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-hub-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.menu-hub-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.menu-hub-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.menu-hub-item:hover .menu-hub-chevron {
+  color: var(--primary);
+  transform: translateX(3px);
 }
 
 /* ==========================================================================
@@ -722,6 +883,9 @@ a {
   border: 1px dashed var(--border-color);
   margin-bottom: 1.25rem;
   overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+  contain: paint;
 }
 
 .qr-canvas-holder canvas,
@@ -730,6 +894,8 @@ a {
   height: auto;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .preview-info-row {
@@ -803,7 +969,7 @@ a {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 1000;
@@ -813,12 +979,16 @@ a {
   padding: 1.25rem;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  pointer-events: none;
+  content-visibility: auto;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .modal-overlay.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
+  content-visibility: visible;
 }
 
 .modal-window {
@@ -829,9 +999,11 @@ a {
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   box-shadow: var(--shadow-xl);
   transform: scale(0.95) translateY(10px);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .modal-overlay.active .modal-window {
@@ -1334,4 +1506,55 @@ a {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
   }
+}
+
+/* ==========================================================================
+   Quick Presets & Expiry Controls
+   ========================================================================== */
+.quick-presets-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.btn-preset-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-preset-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+}
+
+.status-pill-active {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pill-expired {
+  background: rgba(244, 63, 94, 0.15);
+  color: var(--accent-rose);
+  border: 1px solid rgba(244, 63, 94, 0.3);
 }

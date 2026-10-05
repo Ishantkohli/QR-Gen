@@ -805,8 +805,12 @@ export class QRGenerator {
       });
       const tempDiv = document.createElement('div');
       tempQR.append(tempDiv);
-      await new Promise(r => setTimeout(r, 60));
-      canvas = tempDiv.querySelector('canvas');
+      if (tempQR._canvasDrawingPromise) {
+        await tempQR._canvasDrawingPromise;
+      } else {
+        await new Promise(r => setTimeout(r, 80));
+      }
+      canvas = tempDiv.querySelector('canvas') || (tempQR._canvas ? tempQR._canvas.getCanvas() : null);
     }
 
     if (!canvas) {

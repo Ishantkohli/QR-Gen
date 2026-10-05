@@ -91,13 +91,18 @@
     <!-- Left Column: Generator Configuration & Design Studio -->
     <div class="generator-left-col">
 
-      <!-- 1. Data Type Selector (Centered MENU & Social Media Buttons) -->
+      <!-- 1. Data Type Selector (Centered MENU, UPI & Social Media Buttons) -->
       <div class="type-selector-bar" id="typeTabs">
         <button type="button" class="type-tab-btn menu-type-btn menu-main-btn" id="btnOpenTypeMenuDialog"
           title="Choose QR Code Type from Menu">
           <i data-lucide="layout-grid"></i>
           <span id="activeTypeMenuLabel">MENU • URL / Link</span>
           <i data-lucide="chevron-down" style="width: 15px; height: 15px; opacity: 0.8; margin-left: 2px;"></i>
+        </button>
+        <button type="button" class="type-tab-btn upi-main-btn" data-type="upi" id="btnQuickUpi"
+          title="Create UPI Payment QR (Google Pay, PhonePe, Paytm, BHIM)">
+          <i data-lucide="indian-rupee"></i>
+          <span>UPI / Pay</span>
         </button>
         <a href="Media/media.html" class="type-tab-btn social-main-btn" id="btnQuickSocialMedia"
           title="Visit Social Media Hub (media.html)">
@@ -364,29 +369,56 @@
           </div>
         </div>
 
-        <!-- Crypto & UPI Form -->
+        <!-- Crypto Form -->
         <div class="form-panel" data-panel="crypto" style="display: none;">
           <div class="form-grid">
             <div class="form-group full-width">
-              <label class="form-label" for="cryptoType">Payment Protocol</label>
+              <label class="form-label" for="cryptoType">Crypto Protocol / Coin</label>
               <select id="cryptoType" class="form-select">
                 <option value="bitcoin">Bitcoin (BTC)</option>
                 <option value="ethereum">Ethereum (ETH / ERC-20)</option>
                 <option value="solana">Solana (SOL)</option>
-                <option value="upi">UPI Payments (India / GPay / PhonePe)</option>
+                <option value="upi">UPI / INR (Google Pay, PhonePe, Paytm)</option>
               </select>
             </div>
             <div class="form-group full-width">
-              <label class="form-label" for="cryptoAddress">Wallet Address / UPI ID</label>
-              <input type="text" id="cryptoAddress" class="form-input" placeholder="Enter wallet address or user@upi">
+              <label class="form-label" for="cryptoAddress">Wallet Address</label>
+              <input type="text" id="cryptoAddress" class="form-input"
+                placeholder="Enter crypto wallet address (e.g. 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa)">
             </div>
             <div class="form-group">
               <label class="form-label" for="cryptoAmount">Amount (Optional)</label>
               <input type="text" id="cryptoAmount" class="form-input" placeholder="0.05">
             </div>
             <div class="form-group">
-              <label class="form-label" for="cryptoLabel">Recipient Name / Label</label>
-              <input type="text" id="cryptoLabel" class="form-input" placeholder="Store Name">
+              <label class="form-label" for="cryptoLabel">Recipient / Label (Optional)</label>
+              <input type="text" id="cryptoLabel" class="form-input" placeholder="Store Name or Wallet Label">
+            </div>
+          </div>
+        </div>
+
+        <!-- UPI / Payment QR Form -->
+        <div class="form-panel" data-panel="upi" style="display: none;">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label" for="upiId">UPI ID / VPA *</label>
+              <div class="input-with-icon">
+                <i data-lucide="indian-rupee" class="input-icon"></i>
+                <input type="text" id="upiId" class="form-input"
+                  placeholder="merchant@upi or username@okaxis / 9220037676@fam" value="merchant@upi">
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label" for="upiName">Payee Name / Business Name (Optional)</label>
+              <input type="text" id="upiName" class="form-input" placeholder="e.g. Ishant Store or John Doe">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="upiAmount">Amount in ₹ (Optional)</label>
+              <input type="text" id="upiAmount" class="form-input" placeholder="e.g. 500">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="upiNote">Transaction Note / Message (Optional)</label>
+              <input type="text" id="upiNote" class="form-input" placeholder="e.g. Order #1234 or Coffee Payment">
             </div>
           </div>
         </div>
@@ -1280,13 +1312,24 @@
             <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
           </div>
 
+          <div class="menu-hub-item" data-choose-type="upi">
+            <div class="menu-hub-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+              <i data-lucide="indian-rupee"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">UPI & Payment QR</div>
+              <div class="menu-hub-desc">Google Pay, PhonePe, Paytm, BHIM & Bank UPI VPA transfers</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
           <div class="menu-hub-item" data-choose-type="crypto">
             <div class="menu-hub-icon" style="background: rgba(234, 179, 8, 0.15); color: #eab308;">
               <i data-lucide="coins"></i>
             </div>
             <div class="menu-hub-content">
-              <div class="menu-hub-title">Crypto & UPI Payments</div>
-              <div class="menu-hub-desc">Bitcoin, Ethereum, Solana, and UPI India pay links</div>
+              <div class="menu-hub-title">Crypto Payments</div>
+              <div class="menu-hub-desc">Bitcoin, Ethereum, Solana payments</div>
             </div>
             <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
           </div>
@@ -1333,7 +1376,8 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>© 2026 QR Studio Pro • High-Resolution QR • Privacy First • By - Ishant Kohli</p>
+    <p>© 2026 QR Studio Pro • Privacy First •<u><a href="https://ishantkohli.github.io/Web">Ishant Kohli</a>
+      </u></p>
   </footer>
 
   <!-- Application Main Script (ES Module) -->

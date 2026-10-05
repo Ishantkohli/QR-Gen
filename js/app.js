@@ -1120,6 +1120,14 @@ class App {
           label: document.getElementById('cryptoLabel').value
         });
 
+      case 'upi':
+        return DataBuilders.upi({
+          upiId: document.getElementById('upiId').value,
+          upiName: document.getElementById('upiName').value,
+          upiAmount: document.getElementById('upiAmount').value,
+          upiNote: document.getElementById('upiNote').value
+        });
+
       case 'social':
         return DataBuilders.social({
           platform: document.getElementById('socialPlatform').value,

@@ -138,6 +138,7 @@ export const DataBuilders = {
     const formatDate = (datetimeStr) => {
       if (!datetimeStr) return '';
       const d = new Date(datetimeStr);
+      if (isNaN(d.getTime())) return '';
       return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     };
 
@@ -192,6 +193,18 @@ export const DataBuilders = {
     }
 
     return address;
+  },
+
+  // 12. UPI Payments (GPay, PhonePe, Paytm, BHIM, Bank UPI)
+  upi(data) {
+    const id = (data.upiId || '').trim();
+    if (!id) return '';
+    const params = [`pa=${encodeURIComponent(id)}`];
+    if (data.upiName && data.upiName.trim()) params.push(`pn=${encodeURIComponent(data.upiName.trim())}`);
+    if (data.upiAmount && data.upiAmount.trim()) params.push(`am=${encodeURIComponent(data.upiAmount.trim())}`);
+    params.push('cu=INR');
+    if (data.upiNote && data.upiNote.trim()) params.push(`tn=${encodeURIComponent(data.upiNote.trim())}`);
+    return `upi://pay?${params.join('&')}`;
   },
 
   // 12. Social Media Hub Multi-Link / Profiles

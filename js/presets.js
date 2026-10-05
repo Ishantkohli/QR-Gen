@@ -312,6 +312,27 @@ export const DesignPresets = [
     frameTextColor: '#ffffff'
   },
   {
+    id: 'template-upi-pay',
+    name: 'UPI Instant Pay',
+    desc: 'Emerald green gradient card with UPI icon & "Scan to Pay via UPI"',
+    category: 'templates',
+    dotsType: 'rounded',
+    dotsColorType: 'gradient',
+    dotsGradientType: 'linear',
+    dotsGradientStart: '#059669',
+    dotsGradientEnd: '#10b981',
+    cornerSquareType: 'extra-rounded',
+    cornerSquareColor: '#059669',
+    cornerDotType: 'dot',
+    cornerDotColor: '#10b981',
+    background: '#ffffff',
+    logoBrand: 'upi',
+    frame: 'bottom-badge',
+    frameText: 'Scan to Pay via UPI',
+    frameColor: '#059669',
+    frameTextColor: '#ffffff'
+  },
+  {
     id: 'template-youtube-play',
     name: 'YouTube Play Video',
     desc: 'Obsidian card with red rounded corner eyes & "Play video"',

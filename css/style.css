@@ -371,6 +371,37 @@ a {
   color: #d8b4fe;
 }
 
+.upi-main-btn {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #27272a;
+  padding: 0.65rem 1.35rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.upi-main-btn:hover {
+  background: #09090b;
+  border-color: #10b981;
+  color: #34d399;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.upi-main-btn.active {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: #10b981;
+  color: #6ee7b7;
+}
+
 .center-menu-btn {
   display: inline-flex;
   align-items: center;

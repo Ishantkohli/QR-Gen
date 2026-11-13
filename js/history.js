@@ -1,5 +1,5 @@
 /**
- * History and Saved Templates Manager using LocalStorage
+ * History aur Saved Templates Manager LocalStorage use karke
  */
 
 const HISTORY_KEY = 'qr_studio_history_v1';
@@ -29,7 +29,7 @@ export const HistoryManager = {
         options: item.options
       };
 
-      // Limit to 30 items
+      // Max 30 items tak limit rakho
       const updated = [newItem, ...history.filter(h => h.data !== newItem.data)].slice(0, 30);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
       return newItem;

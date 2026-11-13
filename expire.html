@@ -22,13 +22,16 @@
       padding: 1.5rem;
       background-color: var(--bg-main);
       background-image:
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 50%);
+        radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.22) 0px, transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(139, 92, 246, 0.2) 0px, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.15) 0px, transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.15) 0px, transparent 40%);
+      background-attachment: fixed;
     }
 
     .expire-card {
       background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-glass);
       border-radius: var(--radius-xl);
       padding: 2.25rem 2rem;
       max-width: 520px;
@@ -37,8 +40,20 @@
       text-align: center;
       position: relative;
       overflow: hidden;
-      backdrop-filter: blur(16px);
+      backdrop-filter: var(--glass-blur) var(--glass-saturate);
+      -webkit-backdrop-filter: var(--glass-blur) var(--glass-saturate);
       animation: cardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .expire-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+      pointer-events: none;
     }
 
     @keyframes cardAppear {
@@ -240,14 +255,14 @@
 
   <script>
     (function () {
-      // Initialize Lucide icons
+      // Lucide icons initialize karo
       if (window.lucide) lucide.createIcons();
 
-      // Theme initialization
+      // Theme initialization (localStorage se)
       const savedTheme = localStorage.getItem('qr_studio_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', savedTheme);
 
-      // Parse Query Parameters
+      // Query Parameters parse karo
       const urlParams = new URLSearchParams(window.location.search);
       let targetUrl = urlParams.get('target') || '';
       const expParam = urlParams.get('exp') || '';
@@ -255,7 +270,7 @@
       const fallbackUrl = urlParams.get('fallback') || '';
       const customTitle = urlParams.get('title') || '';
 
-      // Decode base64 target if encoded
+      // Agar base64 encoded target hai toh decode karo
       if (targetUrl.startsWith('b64:')) {
         try {
           targetUrl = decodeURIComponent(escape(atob(targetUrl.substring(4))));
@@ -264,7 +279,7 @@
         }
       }
 
-      // Ensure proper protocol
+      // Proper protocol ensure karo (https / mailto / tel)
       if (targetUrl && !/^https?:\/\//i.test(targetUrl) && !/^mailto:/i.test(targetUrl) && !/^tel:/i.test(targetUrl)) {
         targetUrl = 'https://' + targetUrl;
       }
@@ -283,14 +298,14 @@
       const progressBarFill = document.getElementById('progressBarFill');
 
       if (!targetUrl && !expParam) {
-        // No parameters passed (direct visit)
+        // Direct visit bina parameters ke
         statusIcon.className = 'expire-icon-bubble icon-active';
         statusIcon.innerHTML = '<i data-lucide="qr-code"></i>';
         statusBadge.className = 'expire-badge badge-active';
         badgeText.textContent = 'QR Studio Pro';
         statusTitle.textContent = 'Time-Locked QR Service';
-        statusDesc.textContent = 'This page acts as a secure verification router for time-sensitive, expiring QR codes.';
-        actionButtons.innerHTML = '<a href="index.html" class="btn-primary" style="text-decoration:none; justify-content:center;"><i data-lucide="plus-circle"></i> Create Your Own Expiring QR Code</a>';
+        statusDesc.textContent = 'Ye page time-sensitive expiring QR codes ke liye secure verification router ki tarah kaam karta hai.';
+        actionButtons.innerHTML = '<a href="index.html" class="btn-primary" style="text-decoration:none; justify-content:center;"><i data-lucide="plus-circle"></i> Apna Expiring QR Code Banao</a>';
         if (window.lucide) lucide.createIcons();
         return;
       }
@@ -334,7 +349,7 @@
 
       if (isExpired) {
         // ==========================================
-        // EXPIRED STATE
+        // EXPIRED STATE (Time khatam ho gaya)
         // ==========================================
         statusIcon.className = 'expire-icon-bubble icon-expired';
         statusIcon.innerHTML = '<i data-lucide="alert-triangle" style="width: 38px; height: 38px;"></i>';
@@ -342,7 +357,7 @@
         badgeText.textContent = 'QR CODE EXPIRED';
 
         statusTitle.textContent = customTitle || 'This QR Code Has Expired';
-        statusDesc.textContent = customMsg || 'The time limit set by the creator of this QR code has ended, and access is no longer active.';
+        statusDesc.textContent = customMsg || 'QR code creator ka set kiya hua time limit khatam ho chuka hai, ab access active nahi hai.';
 
         valTimeRemaining.textContent = 'Expired ' + getTimeAgo(expiryTimestamp);
         valTimeRemaining.style.color = 'var(--accent-rose)';
@@ -350,15 +365,15 @@
         let buttonsHtml = '';
         if (fallbackUrl) {
           let cleanFb = fallbackUrl.startsWith('http') ? fallbackUrl : 'https://' + fallbackUrl;
-          buttonsHtml += `<a href="${cleanFb}" class="btn-primary" style="text-decoration:none; justify-content:center;"><i data-lucide="external-link"></i> Visit Alternative Resource</a>`;
+          buttonsHtml += `<a href="${cleanFb}" class="btn-primary" style="text-decoration:none; justify-content:center;"><i data-lucide="external-link"></i> Alternative Link Par Jao</a>`;
         }
 
-        buttonsHtml += `<a href="index.html" class="btn-secondary" style="text-decoration:none; justify-content:center;"><i data-lucide="arrow-left"></i> Create New QR Code</a>`;
+        buttonsHtml += `<a href="index.html" class="btn-secondary" style="text-decoration:none; justify-content:center;"><i data-lucide="arrow-left"></i> Naya QR Code Banao</a>`;
         actionButtons.innerHTML = buttonsHtml;
 
       } else {
         // ==========================================
-        // ACTIVE STATE (Not Expired)
+        // ACTIVE STATE (Valid aur chal raha hai)
         // ==========================================
         statusIcon.className = 'expire-icon-bubble icon-active';
         statusIcon.innerHTML = '<i data-lucide="check-circle" style="width: 38px; height: 38px;"></i>';
@@ -366,7 +381,7 @@
         badgeText.textContent = 'ACTIVE & VALID';
 
         statusTitle.textContent = customTitle || 'Redirecting You Now...';
-        statusDesc.textContent = 'This QR pass is valid and active. Forwarding you to your destination.';
+        statusDesc.textContent = 'Ye QR code valid aur active hai. Aapko destination par redirect kiya ja raha hai.';
 
         if (expiryTimestamp) {
           valTimeRemaining.textContent = 'Valid for ' + getTimeRemaining(expiryTimestamp);
@@ -384,7 +399,7 @@
           </a>
         `;
 
-        // Automatically redirect after 1.2 seconds if target is present
+        // Agar target URL present hai toh 1.2s ke baad auto redirect karo
         if (targetUrl) {
           setTimeout(() => {
             window.location.replace(targetUrl);
@@ -394,7 +409,7 @@
 
       if (window.lucide) lucide.createIcons();
 
-      // Helpers
+      // Time calculation helpers
       function getTimeAgo(timestamp) {
         const diffMs = Date.now() - timestamp;
         const diffMins = Math.floor(diffMs / 60000);

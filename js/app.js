@@ -8,7 +8,7 @@ import { DesignPresets } from './presets.js';
 import { HistoryManager } from './history.js';
 import { BatchGenerator } from './batch.js';
 
-// Brand SVGs for quick-insert logos (inline SVG data URIs avoid CORS taint issues on export)
+// Quick-insert logos ke liye Brand SVGs (inline SVG data URIs export karte waqt CORS taint problems prevent karte hain)
 const BrandLogos = {
   tiktok: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23000000"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298 0 .586.046.86.13V9.42a6.33 6.33 0 0 0-.86-.06 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.75a8.28 8.28 0 0 0 4.84 1.54V6.85a4.85 4.85 0 0 1-1.07-.16z"/></svg>',
   dropbox: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230061FF"><path d="M6 2l6 3.86L6 9.72 0 5.86 6 2zm12 0l6 3.86-6 3.86-6-3.86L18 2zM0 13.58l6-3.86 6 3.86-6 3.86-6-3.86zm18-3.86l6 3.86-6 3.86-6-3.86 6-3.86zm-6 4.96l6 3.86-6 3.86-6-3.86 6-3.86z"/></svg>',
@@ -54,43 +54,49 @@ class App {
     this.selectedLogoBg = 'none';
     this.logoShapeCache = new Map();
 
+    // File Sharing state
+    this.currentUploadedFile = null;
+    this.currentShortUrl = '';
+    this.shortUrlCache = new Map();
+    this.shortUrlDebounceTimer = null;
+
     this.init();
   }
 
   init() {
-    // 1. Initialize Icons
+    // 1. Icons initialize karo
     if (window.lucide) {
       window.lucide.createIcons();
     }
 
-    // 2. Initialize QR Generator
+    // 2. QR Generator initialize karo
     const container = document.getElementById('qrCanvasContainer');
     this.generator = new QRGenerator(container);
     this.batchGenerator = new BatchGenerator(this.generator);
 
-    // 3. Render Brand Logos in panel
+    // 3. Panel me Brand Logos render karo
     this.renderBrandPresets();
 
-    // 4. Render Design Presets in Modal
+    // 4. Modal me Design Presets render karo
     this.renderDesignPresetsModal();
 
-    // 5. Initialize Theme
+    // 5. Theme initialize karo
     this.initTheme();
 
-    // 6. Bind all Event Listeners
+    // 6. Saare Event Listeners bind karo
     this.bindEvents();
 
-    // 7. Initial QR code generation
+    // 7. Initial QR code generate karo
     this.triggerUpdate();
 
-    // Re-render lucide after dynamic elements
+    // Dynamic elements aane ke baad lucide firse re-render karo
     setTimeout(() => {
       if (window.lucide) window.lucide.createIcons();
     }, 100);
   }
 
   // ==========================================
-  // Image / Logo Shaping Pipeline with Cache
+  // Cache ke saath Image / Logo Shaping Pipeline
   // ==========================================
   async processLogoShape(imageSource, shape = 'original', bgMode = 'none') {
     if (!imageSource || imageSource.trim() === '') return '';
@@ -98,7 +104,7 @@ class App {
       return imageSource;
     }
 
-    // Check fast memory cache
+    // Fast memory cache check karo
     const cacheKey = `${shape}_${bgMode}_${imageSource.length}_${imageSource.slice(0, 40)}`;
     if (this.logoShapeCache.has(cacheKey)) {
       return this.logoShapeCache.get(cacheKey);
@@ -155,12 +161,12 @@ class App {
             }
             context.closePath();
           } else {
-            // original / square
+            // original ya square
             context.rect(x, y, w, h);
           }
         }
 
-        // Draw Background Pill if requested
+        // Agar background pill maangi gayi hai toh draw karo
         if (bgMode === 'white' || bgMode === 'dark') {
           ctx.save();
           createShapePath(ctx, shape, 0);
@@ -172,13 +178,13 @@ class App {
           ctx.restore();
         }
 
-        // Draw Clipped Image
+        // Clipped Image draw karo
         ctx.save();
         const contentPadding = bgMode !== 'none' ? size * 0.12 : 0;
         createShapePath(ctx, shape, contentPadding);
         ctx.clip();
 
-        // Calculate aspect ratio containment
+        // Aspect ratio containment calculate karo
         const imgAspect = img.width / img.height;
         let drawW = size - (contentPadding * 2);
         let drawH = size - (contentPadding * 2);
@@ -240,7 +246,7 @@ class App {
   }
 
   // ==========================================
-  // Brand Logos & Presets
+  // Brand Logos aur Presets
   // ==========================================
   renderBrandPresets() {
     const grid = document.getElementById('brandPresetsGrid');
@@ -265,7 +271,7 @@ class App {
 
       btn.addEventListener('click', () => {
         if (this.selectedLogoPreset === brand) {
-          // Deselect
+          // Deselect karo
           this.selectedLogoPreset = null;
           this.rawLogoSource = null;
           btn.classList.remove('active');
@@ -273,7 +279,7 @@ class App {
           this.applyCurrentLogo();
           this.showToast('Brand logo removed', 'info');
         } else {
-          // Select
+          // Select karo
           grid.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.selectedLogoPreset = brand;
@@ -297,7 +303,7 @@ class App {
       ? DesignPresets
       : DesignPresets.filter(preset => preset.category === filterCategory);
 
-    // Setup Lazy Render Observer for instant modal opening and zero lag
+    // Instant modal opening aur zero lag ke liye Lazy Render Observer setup karo
     const observer = new IntersectionObserver((entries, obs) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -382,13 +388,13 @@ class App {
   }
 
   applyPreset(preset) {
-    // 1. Update UI controls to match preset
+    // 1. Preset se match karne ke liye UI controls update karo
     // Body Dots
     document.querySelectorAll('#dotStyleTiles .style-tile').forEach(t => {
       t.classList.toggle('active', t.dataset.val === preset.dotsType);
     });
 
-    // Corner Square & Dot
+    // Corner Square aur Dot
     document.querySelectorAll('#cornerSquareTiles .style-tile').forEach(t => {
       t.classList.toggle('active', t.dataset.val === preset.cornerSquareType);
     });
@@ -396,7 +402,7 @@ class App {
       t.classList.toggle('active', t.dataset.val === preset.cornerDotType);
     });
 
-    // Colors
+    // Colors set karo
     const isGrad = preset.dotsColorType === 'gradient';
     const radInput = document.querySelector(`input[name="colorMode"][value="${isGrad ? preset.gradientType || 'linear' : 'single'}"]`);
     if (radInput) radInput.checked = true;
@@ -426,7 +432,7 @@ class App {
     document.getElementById('bgColorHex').value = (preset.background || '#ffffff').toUpperCase();
     document.getElementById('bgTransparent').checked = preset.background === 'transparent';
 
-    // Logo handling
+    // Logo handling logic
     const brandGrid = document.getElementById('brandPresetsGrid');
     if (brandGrid) {
       brandGrid.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
@@ -450,7 +456,7 @@ class App {
       this.applyCurrentLogo();
     }
 
-    // Frame
+    // Frame set karo
     document.querySelectorAll('#frameStyleTiles .style-tile').forEach(t => {
       t.classList.toggle('active', t.dataset.val === (preset.frame || 'none'));
     });
@@ -466,12 +472,13 @@ class App {
       document.getElementById('frameTextColorHex').value = preset.frameTextColor.toUpperCase();
     }
 
-    // Trigger update
+    // Update trigger karo
     this.triggerUpdate();
   }
 
   // ==========================================
   // Event Binding
+  // ==========================================
   // ==========================================
   switchDataType(targetType) {
     if (!targetType) return;
@@ -485,12 +492,12 @@ class App {
       activeLabel.textContent = `MENU • ${title}`;
     }
 
-    // Toggle active state on quick tab buttons
+    // Quick tab buttons par active state toggle karo
     document.querySelectorAll('.type-tab-btn[data-type]').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.type === targetType);
     });
 
-    // Switch form panel
+    // Form panel switch karo
     document.querySelectorAll('#contentPanels .form-panel').forEach(panel => {
       panel.style.display = panel.dataset.panel === targetType ? 'block' : 'none';
     });
@@ -499,7 +506,7 @@ class App {
   }
 
   bindEvents() {
-    // 1. Data Type Switching
+    // 1. Data Type Switch karne ke listeners
     const typeTabs = document.getElementById('typeTabs');
     if (typeTabs) {
       typeTabs.addEventListener('click', (e) => {
@@ -544,7 +551,7 @@ class App {
       });
     }
 
-    // 2. Form Inputs Live Listeners
+    // 2. Form Inputs ke Live Listeners
     const contentPanels = document.getElementById('contentPanels');
     contentPanels.addEventListener('input', () => this.triggerUpdate());
     contentPanels.addEventListener('change', () => this.triggerUpdate());
@@ -560,7 +567,7 @@ class App {
       });
     });
 
-    // 3. Accordions Collapsing
+    // 3. Accordions Collapse karne ke listeners
     document.querySelectorAll('.accordion-header').forEach(header => {
       header.addEventListener('click', () => {
         const item = header.closest('.accordion-item');
@@ -577,7 +584,7 @@ class App {
       this.triggerUpdate();
     });
 
-    // 5. Color Controls & Mode
+    // 5. Color Controls aur Modes
     document.querySelectorAll('input[name="colorMode"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         const isGrad = e.target.value !== 'single';
@@ -619,9 +626,37 @@ class App {
     document.getElementById('bgTransparent').addEventListener('change', () => this.triggerUpdate());
     document.getElementById('hideDotsBehindLogo').addEventListener('change', () => this.triggerUpdate());
     document.getElementById('frameTextInput').addEventListener('input', () => this.triggerUpdate());
+    document.getElementById('frameIncludeShortUrl')?.addEventListener('change', () => this.triggerUpdate());
+    document.getElementById('togglePrintShortUrlOnQR')?.addEventListener('change', () => this.triggerUpdate());
     document.getElementById('errorCorrectionSelect').addEventListener('change', () => this.triggerUpdate());
 
-    // 6. Custom Logo Upload & Shaping Controls
+    // Short URL Copy aur Refresh Buttons
+    const btnCopyShortUrl = document.getElementById('btnCopyShortUrl');
+    if (btnCopyShortUrl) {
+      btnCopyShortUrl.addEventListener('click', () => {
+        if (!this.currentShortUrl) return;
+        navigator.clipboard.writeText(this.currentShortUrl).then(() => {
+          this.showToast('Short URL copied to clipboard!', 'success');
+        }).catch(() => {
+          this.showToast('Copied to clipboard', 'info');
+        });
+      });
+    }
+
+    const btnRefreshShortUrl = document.getElementById('btnRefreshShortUrl');
+    if (btnRefreshShortUrl) {
+      btnRefreshShortUrl.addEventListener('click', () => {
+        const payload = this.buildCurrentPayload();
+        this.shortUrlCache.delete(payload);
+        this.updateShortUrlForPayload(payload, true);
+        this.showToast('Refreshing short URL...', 'info');
+      });
+    }
+
+    // File Sharing Events (Drag-and-Drop aur File Input)
+    this.bindFileSharingEvents();
+
+    // 6. Custom Logo Upload aur Shaping Controls
     const logoFileInput = document.getElementById('logoFileInput');
     document.getElementById('btnUploadLogo').addEventListener('click', () => logoFileInput.click());
     logoFileInput.addEventListener('change', (e) => {
@@ -630,7 +665,7 @@ class App {
 
       const reader = new FileReader();
       reader.onload = (ev) => {
-        // Deselect brand icons
+        // Brand icons ko deselect karo
         document.querySelectorAll('.logo-preset-btn').forEach(b => b.classList.remove('active'));
         this.selectedLogoPreset = null;
         this.rawLogoSource = ev.target.result;
@@ -706,11 +741,13 @@ class App {
       expiryFallbackUrl.addEventListener('input', () => this.triggerUpdate());
     }
 
-    // Quick duration presets
+    // Quick duration presets (e.g. 10m, 1h, 24h, 7d, etc.)
     document.querySelectorAll('.btn-preset-pill').forEach(btn => {
       btn.addEventListener('click', () => {
         const now = new Date();
-        if (btn.dataset.presetHours) {
+        if (btn.dataset.presetMinutes) {
+          now.setMinutes(now.getMinutes() + parseInt(btn.dataset.presetMinutes, 10));
+        } else if (btn.dataset.presetHours) {
           now.setHours(now.getHours() + parseInt(btn.dataset.presetHours, 10));
         } else if (btn.dataset.presetDays) {
           now.setDate(now.getDate() + parseInt(btn.dataset.presetDays, 10));
@@ -727,7 +764,8 @@ class App {
           }
           this.updateExpiryStatusBadge();
           this.triggerUpdate();
-          this.showToast(`Set expiration to ${now.toLocaleDateString()}`, 'info');
+          const timeLabel = btn.dataset.presetMinutes ? `${btn.dataset.presetMinutes} minutes` : now.toLocaleDateString();
+          this.showToast(`Set expiration to ${timeLabel}`, 'info');
         }
       });
     });
@@ -748,7 +786,7 @@ class App {
       });
     }
 
-    // Expiration Modal Trigger & Apply
+    // Expiration Modal Trigger aur Apply
     const btnOpenExpiryModal = document.getElementById('btnOpenExpiryModal');
     if (btnOpenExpiryModal) {
       btnOpenExpiryModal.addEventListener('click', () => this.openModal('expiryModal'));
@@ -775,7 +813,7 @@ class App {
     document.getElementById('btnCopyClipboard').addEventListener('click', () => this.handleExport('copy'));
     document.getElementById('btnPrint').addEventListener('click', () => window.print());
 
-    // 8. Custom Template Save
+    // 8. Custom Template Save karo
     document.getElementById('btnSaveCustomTemplate').addEventListener('click', () => {
       const name = prompt('Enter a name for your custom style preset:', 'My Brand Style');
       if (!name) return;
@@ -783,7 +821,7 @@ class App {
       this.showToast(`Saved style "${name}" to templates!`, 'success');
     });
 
-    // 9. Modals Trigger
+    // 9. Modals Trigger karo
     document.getElementById('btnOpenPresets').addEventListener('click', () => this.openModal('presetsModal'));
     // Preset Categories Filter
     document.querySelectorAll('#presetCategoriesBar .category-btn').forEach(btn => {
@@ -808,7 +846,7 @@ class App {
       });
     });
 
-    // Click outside modal
+    // Modal ke bahar click karne par close karo
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
@@ -820,7 +858,7 @@ class App {
     // 11. Batch generator events
     this.bindBatchEvents();
 
-    // 12. History clear
+    // 12. History clear karo
     document.getElementById('btnClearHistory').addEventListener('click', () => {
       if (confirm('Clear all generation history?')) {
         HistoryManager.clearHistory();
@@ -829,7 +867,7 @@ class App {
       }
     });
 
-    // 13. Theme Toggle
+    // 13. Theme Toggle karo
     document.getElementById('themeToggleBtn').addEventListener('click', () => this.toggleTheme());
   }
 
@@ -919,6 +957,8 @@ class App {
     const frameText = document.getElementById('frameTextInput').value || 'SCAN ME';
     const frameColor = document.getElementById('frameColorInput').value;
     const frameTextColor = document.getElementById('frameTextColorInput').value;
+    const frameIncludeShortUrl = document.getElementById('frameIncludeShortUrl')?.checked || false;
+    const printShortUrlOnQR = document.getElementById('togglePrintShortUrlOnQR')?.checked || false;
 
     const errorCorrectionLevel = document.getElementById('errorCorrectionSelect').value;
     const margin = parseInt(document.getElementById('marginSlider').value, 10) || 10;
@@ -939,6 +979,8 @@ class App {
     const newOptions = {
       data: payload,
       margin: margin,
+      shortUrl: this.currentShortUrl || '',
+      showShortUrl: printShortUrlOnQR,
       qrOptions: {
         errorCorrectionLevel: errorCorrectionLevel
       },
@@ -969,12 +1011,340 @@ class App {
         text: frameText,
         color: frameColor,
         textColor: frameTextColor,
-        fontFamily: "Arial, Helvetica, sans-serif"
+        fontFamily: "Arial, Helvetica, sans-serif",
+        includeShortUrl: frameIncludeShortUrl
       }
     };
 
     this.generator.update(newOptions);
     this.updateScannabilityScore();
+    this.updateShortUrlForPayload(payload);
+  }
+
+  // ==========================================
+  // Short URL Generator aur Fallback System
+  // ==========================================
+  updateShortUrlForPayload(payload, forceRefresh = false) {
+    if (!payload || !payload.trim()) return;
+
+    if (!forceRefresh && this.shortUrlCache.has(payload)) {
+      this.currentShortUrl = this.shortUrlCache.get(payload);
+      this.renderShortUrlDisplay(this.currentShortUrl);
+      return;
+    }
+
+    if (this.shortUrlDebounceTimer) {
+      clearTimeout(this.shortUrlDebounceTimer);
+    }
+
+    this.shortUrlDebounceTimer = setTimeout(async () => {
+      const short = await this.requestShortUrl(payload);
+      this.currentShortUrl = short;
+      this.shortUrlCache.set(payload, short);
+      this.renderShortUrlDisplay(short);
+
+      // Agar user ne "include in QR" toggle kiya hai, toh updated short URL display karne ke liye QR refresh karo
+      const printOnQr = document.getElementById('togglePrintShortUrlOnQR')?.checked;
+      const frameIncludes = document.getElementById('frameIncludeShortUrl')?.checked;
+      if (printOnQr || frameIncludes) {
+        this.generator.update({
+          shortUrl: short,
+          showShortUrl: printOnQr
+        });
+      }
+    }, 300);
+  }
+
+  async requestShortUrl(payload) {
+    let targetToShorten = payload.trim();
+
+    // Agar payload pehle se hi valid short URL hai
+    if (/^(https?:\/\/(is\.gd|tinyurl\.com|bit\.ly|t\.co|qr-studio\.tech))\//i.test(targetToShorten)) {
+      return targetToShorten;
+    }
+
+    // Agar payload http URL nahi hai (jaise text, vcard, wifi, upi), toh use local viewer link me wrap karo
+    if (!/^https?:\/\//i.test(targetToShorten)) {
+      let base = 'https://qr-studio.tech/';
+      if (typeof window !== 'undefined' && window.location && window.location.href) {
+        const loc = window.location;
+        if (loc.protocol.startsWith('http')) {
+          base = loc.origin + loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+        }
+      }
+      const viewUrl = new URL('expire.html', base);
+      viewUrl.searchParams.set('target', targetToShorten);
+      targetToShorten = viewUrl.toString();
+    }
+
+    // 1. is.gd shortener API try karo
+    try {
+      const res = await fetch(`https://is.gd/create.php?format=json&url=${encodeURIComponent(targetToShorten)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.shorturl) {
+          return data.shorturl;
+        }
+      }
+    } catch (e) {
+      // TinyURL par fallback
+    }
+
+    // 2. TinyURL public API try karo
+    try {
+      const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(targetToShorten)}`);
+      if (res.ok) {
+        const short = await res.text();
+        if (short && short.startsWith('http')) {
+          return short.trim();
+        }
+      }
+    } catch (e) {
+      // Fallback
+    }
+
+    // 3. Fallback: Compact cleaned URL string
+    try {
+      const u = new URL(targetToShorten);
+      return `${u.hostname}${u.pathname.length > 1 ? u.pathname.substring(0, 15) + '…' : ''}`;
+    } catch (e) {
+      return targetToShorten.length > 28 ? targetToShorten.substring(0, 25) + '…' : targetToShorten;
+    }
+  }
+
+  renderShortUrlDisplay(shortUrl) {
+    const linkEl = document.getElementById('displayShortUrlLink');
+    if (!linkEl) return;
+
+    if (!shortUrl) {
+      linkEl.textContent = 'Generating short link...';
+      linkEl.removeAttribute('href');
+      return;
+    }
+
+    linkEl.textContent = shortUrl;
+    linkEl.href = shortUrl.startsWith('http') ? shortUrl : `https://${shortUrl}`;
+  }
+
+  // ==========================================
+  // Universal File Sharing System
+  // ==========================================
+  bindFileSharingEvents() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInputUpload');
+    const statusCard = document.getElementById('fileUploadStatusCard');
+    const btnRemove = document.getElementById('btnRemoveSelectedFile');
+    const directUrlInput = document.getElementById('inputFileDirectUrl');
+
+    if (!dropZone || !fileInput) return;
+
+    // Dropzone par click karne se native picker khulta hai
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Drag over aur leave animation classes
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      });
+    });
+
+    // Dropped file ko handle karo
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        this.processFileForSharing(files[0]);
+      }
+    });
+
+    // Input se selected file ko handle karo
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        this.processFileForSharing(file);
+      }
+    });
+
+    // File remove karne ka button
+    if (btnRemove) {
+      btnRemove.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.currentUploadedFile = null;
+        fileInput.value = '';
+        if (statusCard) statusCard.style.display = 'none';
+        if (dropZone) dropZone.style.display = 'block';
+        this.triggerUpdate();
+        this.showToast('File removed', 'info');
+      });
+    }
+
+    // Direct URL input listener
+    if (directUrlInput) {
+      directUrlInput.addEventListener('input', () => this.triggerUpdate());
+    }
+  }
+
+  formatBytes(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  getFileCategoryIcon(fileName = '', mimeType = '') {
+    const ext = fileName.split('.').pop().toLowerCase();
+    if (['apk', 'aab'].includes(ext)) return 'smartphone';
+    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext) || mimeType.startsWith('video/')) return 'video';
+    if (['mp3', 'wav', 'aac', 'flac', 'ogg', 'm4a'].includes(ext) || mimeType.startsWith('audio/')) return 'music';
+    if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(ext) || mimeType.startsWith('image/')) return 'image';
+    if (['pdf'].includes(ext)) return 'file-text';
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) return 'archive';
+    return 'file';
+  }
+
+  async processFileForSharing(file) {
+    if (!file) return;
+
+    const dropZone = document.getElementById('fileDropZone');
+    const statusCard = document.getElementById('fileUploadStatusCard');
+    const nameLine = document.getElementById('fileSelectedName');
+    const detailsLine = document.getElementById('fileSelectedDetails');
+    const iconBadge = document.getElementById('fileStatusIcon');
+    const progressTrack = document.getElementById('fileUploadProgressTrack');
+    const progressBar = document.getElementById('fileUploadProgressBar');
+    const progressText = document.getElementById('fileUploadProgressText');
+
+    if (dropZone) dropZone.style.display = 'none';
+    if (statusCard) statusCard.style.display = 'block';
+
+    const iconName = this.getFileCategoryIcon(file.name, file.type);
+    if (iconBadge) {
+      iconBadge.innerHTML = `<i data-lucide="${iconName}"></i>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+
+    if (nameLine) nameLine.textContent = file.name;
+    if (detailsLine) detailsLine.textContent = `${this.formatBytes(file.size)} • ${file.type || 'Binary'}`;
+
+    if (progressTrack) progressTrack.style.display = 'block';
+    if (progressText) {
+      progressText.style.display = 'block';
+      progressText.textContent = 'Uploading to cloud storage...';
+    }
+    if (progressBar) progressBar.style.width = '30%';
+
+    try {
+      let downloadUrl = null;
+
+      // 1. Pehla try: TmpFiles.org (Fast temporary file host, 10-minute expiry param support karta hai: 600 seconds)
+      try {
+        const tmpData = new FormData();
+        tmpData.append('file', file);
+        // Expiry time seconds me: 10 mins = 600s
+        tmpData.append('expire', '600');
+        if (progressBar) progressBar.style.width = '50%';
+
+        const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+          method: 'POST',
+          body: tmpData
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.status === 'success' && json.data && json.data.url) {
+            // https://tmpfiles.org/123/name ko direct download link https://tmpfiles.org/dl/123/name me convert karo
+            const rawUrl = json.data.url;
+            downloadUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+          }
+        }
+      } catch (err1) {
+        console.warn('TmpFiles upload fail ho gaya, Uguu par fallback:', err1);
+      }
+
+      // 2. Dusra fallback: Uguu.se (Fast CORS-friendly temporary public host)
+      if (!downloadUrl) {
+        try {
+          const uguuData = new FormData();
+          uguuData.append('files[]', file);
+          if (progressBar) progressBar.style.width = '75%';
+
+          const res = await fetch('https://uguu.se/upload.php', {
+            method: 'POST',
+            body: uguuData
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.success && json.files && json.files[0] && json.files[0].url) {
+              downloadUrl = json.files[0].url;
+            }
+          }
+        } catch (err2) {
+          console.warn('Uguu upload fail ho gaya:', err2);
+        }
+      }
+
+      // 3. Last fallback: Base64 Data URL (chhoti files ke liye)
+      let dataUri = '';
+      if (!downloadUrl && file.size <= 2 * 1024 * 1024) {
+        dataUri = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = () => resolve('');
+          reader.readAsDataURL(file);
+        });
+        downloadUrl = dataUri;
+      }
+
+      if (progressBar) progressBar.style.width = '100%';
+
+      if (!downloadUrl) {
+        throw new Error('All automatic upload endpoints were blocked. Please paste a cloud link.');
+      }
+
+      if (progressText) {
+        progressText.textContent = '✓ Ready to share';
+        progressText.style.color = 'var(--accent-emerald)';
+      }
+
+      this.currentUploadedFile = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        downloadUrl: downloadUrl,
+        dataUri: dataUri
+      };
+
+      // Direct URL field me live cloud link daal do
+      const directUrlInput = document.getElementById('inputFileDirectUrl');
+      if (directUrlInput && downloadUrl.startsWith('http')) {
+        directUrlInput.value = downloadUrl;
+      }
+
+      this.triggerUpdate();
+      this.showToast(`"${file.name}" uploaded successfully!`, 'success');
+
+    } catch (err) {
+      console.error('File sharing error:', err);
+      if (progressText) {
+        progressText.textContent = 'Upload failed. You can paste a cloud link below.';
+        progressText.style.color = 'var(--accent-rose)';
+      }
+      this.showToast('Upload service unavailable. Please paste a direct download link.', 'warning');
+    } finally {
+      setTimeout(() => {
+        if (progressTrack) progressTrack.style.display = 'none';
+        if (progressText) progressText.style.display = 'none';
+      }, 2500);
+    }
   }
 
   formatDateTimeLocal(date) {
@@ -1014,8 +1384,16 @@ class App {
       if (badge) badge.className = 'status-pill status-pill-active';
       const days = Math.floor(diff / (24 * 3600 * 1000));
       const hours = Math.floor((diff % (24 * 3600 * 1000)) / (3600 * 1000));
-      const remainingStr = days > 0 ? `${days}d ${hours}h left` : `${hours}h left`;
-      if (text) text.textContent = `Active • Expires in ${days > 0 ? `${days}d ${hours}h` : `${hours}h`}`;
+      const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
+      let remainingStr = '';
+      if (days > 0) {
+        remainingStr = `${days}d ${hours}h left`;
+      } else if (hours > 0) {
+        remainingStr = `${hours}h ${mins}m left`;
+      } else {
+        remainingStr = `${mins}m left`;
+      }
+      if (text) text.textContent = `Active • Expires in ${remainingStr}`;
       if (statusSnippet) {
         statusSnippet.innerHTML = `<span style="color: var(--accent-emerald); font-weight: 600;">Active • Expires ${formattedDate} (${remainingStr})</span>`;
       }
@@ -1140,13 +1518,22 @@ class App {
           appId: document.getElementById('appId').value
         });
 
+      case 'file':
+        const directFileUrl = document.getElementById('inputFileDirectUrl')?.value;
+        const uploadedFileUrl = this.currentUploadedFile?.downloadUrl;
+        const finalUrl = directFileUrl && directFileUrl.trim() ? directFileUrl.trim() : (uploadedFileUrl || '');
+        return DataBuilders.file({
+          fileUrl: finalUrl,
+          fileData: this.currentUploadedFile?.dataUri || ''
+        });
+
       default:
         return 'https://example.com';
     }
   }
 
   // ==========================================
-  // Exports & Downloads
+  // Exports aur Downloads
   // ==========================================
   async handleExport(format) {
     const res = parseInt(document.getElementById('exportResolutionSelect').value, 10) || 1024;
@@ -1156,10 +1543,10 @@ class App {
       await this.generator.export(format, res, filename);
 
       if (format === 'copy') {
-        this.showToast('QR Code image copied to clipboard!', 'success');
+        this.showToast('QR Code image clipboard me copy ho gayi!', 'success');
       } else {
-        this.showToast(`Exported ${format.toUpperCase()} successfully!`, 'success');
-        // Confetti celebration
+        this.showToast(`${format.toUpperCase()} export successful raha!`, 'success');
+        // Confetti celebration chalao
         if (window.confetti) {
           window.confetti({
             particleCount: 50,
@@ -1169,7 +1556,7 @@ class App {
         }
       }
 
-      // Record to history
+      // History me save karo
       HistoryManager.addItem({
         type: this.currentType,
         data: this.generator.currentOptions.data,
@@ -1178,12 +1565,12 @@ class App {
 
     } catch (err) {
       console.error('Export error:', err);
-      this.showToast(err.message || 'Export failed', 'error');
+      this.showToast(err.message || 'Export fail ho gaya', 'error');
     }
   }
 
   // ==========================================
-  // Contrast Ratio & Visual Scannability Health Score Check
+  // Contrast Ratio aur Visual Scannability Score Check
   // ==========================================
   calculateLuminance(hex) {
     let rgb = this.hexToRgb(hex);
@@ -1226,52 +1613,52 @@ class App {
     let score = 100;
     let feedback = [];
     
-    // 1. Contrast Check
+    // 1. Contrast ratio check karo
     const contrast = this.getContrastRatio(primaryColor, bgColor);
     if (contrast < 3.0) {
       score -= 45;
-      feedback.push('<span style="color: var(--accent-rose); font-weight: 700;">⚠️ Critical: Low color contrast (' + contrast.toFixed(1) + ':1). Choose a darker QR code color or lighter background.</span>');
+      feedback.push('<span style="color: var(--accent-rose); font-weight: 700;">⚠️ Critical: Color contrast kam hai (' + contrast.toFixed(1) + ':1). Darker QR color ya lighter background chuno.</span>');
     } else if (contrast < 4.5) {
       score -= 20;
-      feedback.push('<span style="color: var(--accent-amber); font-weight: 700;">⚠️ Warning: Moderate contrast (' + contrast.toFixed(1) + ':1). Scanners might struggle in low light.</span>');
+      feedback.push('<span style="color: var(--accent-amber); font-weight: 700;">⚠️ Warning: Moderate contrast (' + contrast.toFixed(1) + ':1). Low light me scan hone me dikkat ho sakti hai.</span>');
     } else {
-      feedback.push('<span style="color: var(--accent-emerald);">✓ Excellent color contrast ratio (' + contrast.toFixed(1) + ':1).</span>');
+      feedback.push('<span style="color: var(--accent-emerald);">✓ Badhiya color contrast ratio (' + contrast.toFixed(1) + ':1).</span>');
     }
 
-    // 2. Data Density Check
+    // 2. Data Density check karo
     const len = payload.length;
     if (len > 140 && (errorCorrectionLevel === 'L' || errorCorrectionLevel === 'M')) {
       score -= 15;
-      feedback.push('<span style="color: var(--accent-amber);">⚠️ Warning: High data density (' + len + ' chars). Switch to Error Correction Q or H for better durability.</span>');
+      feedback.push('<span style="color: var(--accent-amber);">⚠️ Warning: Data density zyada hai (' + len + ' chars). Behtar durability ke liye Error Correction Q ya H par switch karo.</span>');
     } else if (len > 220) {
       score -= 10;
-      feedback.push('<span style="color: var(--accent-amber);">⚠️ Notice: QR code contains a lot of data. Printing it too small might make it unscannable.</span>');
+      feedback.push('<span style="color: var(--accent-amber);">⚠️ Notice: QR code me kafi data hai. Zyada chhota print karne par scan me problem ho sakti hai.</span>');
     } else {
-      feedback.push('<span style="color: var(--accent-emerald);">✓ Optimal payload length (' + len + ' chars).</span>');
+      feedback.push('<span style="color: var(--accent-emerald);">✓ Payload length ekdum sahi hai (' + len + ' chars).</span>');
     }
 
-    // 3. Logo Check
+    // 3. Logo check karo
     const isLogo = this.selectedLogoPreset || document.getElementById('logoFileInput').files.length > 0;
     if (isLogo) {
       const logoSize = parseInt(document.getElementById('logoSizeSlider').value, 10);
       if (logoSize > 32 && errorCorrectionLevel !== 'H') {
         score -= 20;
-        feedback.push('<span style="color: var(--accent-rose); font-weight: 700;">⚠️ Danger: Large logo overlay (' + logoSize + '%). Set Error Correction Level to H (30%) to prevent scan errors.</span>');
+        feedback.push('<span style="color: var(--accent-rose); font-weight: 700;">⚠️ Danger: Bada logo overlay (' + logoSize + '%). Scan errors se bachne ke liye Error Correction H (30%) set karo.</span>');
       } else if (logoSize > 32) {
-        feedback.push('<span style="color: var(--accent-amber);">✓ Large logo loaded. Verified with Error Correction Level H.</span>');
+        feedback.push('<span style="color: var(--accent-amber);">✓ Bada logo loaded hai. Error Correction Level H ke sath verify ho gaya.</span>');
       } else {
-        feedback.push('<span style="color: var(--accent-emerald);">✓ Logo size is within safe bounds (' + logoSize + '%).</span>');
+        feedback.push('<span style="color: var(--accent-emerald);">✓ Logo size safe limit me hai (' + logoSize + '%).</span>');
       }
     }
 
     if (isTransparent) {
       score -= 5;
-      feedback.push('<span style="color: var(--text-muted); font-size: 0.7rem;">ℹ️ Transparency enabled. Ensure you print the QR code on a light background.</span>');
+      feedback.push('<span style="color: var(--text-muted); font-size: 0.7rem;">ℹ️ Transparency enabled hai. Ensure karo ki QR code light background par print ho.</span>');
     }
 
     score = Math.max(10, Math.min(100, score));
 
-    // Update UI elements
+    // UI elements update karo
     const scoreValEl = document.getElementById('scannabilityScoreVal');
     const progressBarEl = document.getElementById('scannabilityProgressBar');
     const feedbackEl = document.getElementById('scannabilityFeedback');
@@ -1347,7 +1734,7 @@ WIFI:S:OfficeWifi;T:WPA;P:SecretPass123;;, wifi_card`;
           }
         });
 
-        // Download zip
+        // Zip file download trigger karo
         const link = document.createElement('a');
         link.href = URL.createObjectURL(zipBlob);
         link.download = `qr_batch_${Date.now()}.zip`;
@@ -1432,7 +1819,7 @@ WIFI:S:OfficeWifi;T:WPA;P:SecretPass123;;, wifi_card`;
   }
 
   // ==========================================
-  // Modal Helpers
+  // Modal Helper Functions
   // ==========================================
   openModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -1445,7 +1832,7 @@ WIFI:S:OfficeWifi;T:WPA;P:SecretPass123;;, wifi_card`;
   }
 
   // ==========================================
-  // Theme Toggle
+  // Theme Toggle (Dark / Light mode)
   // ==========================================
   initTheme() {
     const saved = localStorage.getItem('qr_studio_theme') || 'dark';
@@ -1497,7 +1884,7 @@ WIFI:S:OfficeWifi;T:WPA;P:SecretPass123;;, wifi_card`;
   }
 }
 
-// Start application
+// Application shuru karo
 window.addEventListener('DOMContentLoaded', () => {
   new App();
 });

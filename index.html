@@ -99,6 +99,11 @@
           <span id="activeTypeMenuLabel">MENU • URL / Link</span>
           <i data-lucide="chevron-down" style="width: 15px; height: 15px; opacity: 0.8; margin-left: 2px;"></i>
         </button>
+        <button type="button" class="type-tab-btn file-main-btn" data-type="file" id="btnQuickFile"
+          title="Share any file (APK, MP4, MP3, PDF, PNG, etc.)">
+          <i data-lucide="file-up"></i>
+          <span>Share Files</span>
+        </button>
         <button type="button" class="type-tab-btn upi-main-btn" data-type="upi" id="btnQuickUpi"
           title="Create UPI Payment QR (Google Pay, PhonePe, Paytm, BHIM)">
           <i data-lucide="indian-rupee"></i>
@@ -154,7 +159,7 @@
               </details>
             </div>
 
-            <!-- Expiration Trigger Card -->
+            <!-- Expire Trigger Card -->
             <div class="form-group full-width" style="margin-top: 0.25rem;">
               <div
                 style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-subtle); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem 0.9rem; flex-wrap: wrap; gap: 0.6rem;">
@@ -465,6 +470,77 @@
             <div class="form-group">
               <label class="form-label" for="appId">App ID / Package Name</label>
               <input type="text" id="appId" class="form-input" placeholder="e.g. 123456789 or com.app.name">
+            </div>
+          </div>
+        </div>
+
+        <!-- Any File Sharing Form (APK, MP4, MP3, PDF, PNG, etc.) -->
+        <div class="form-panel" data-panel="file" style="display: none;">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">
+                <span>Upload & Share Any File</span>
+                <span style="font-size: 0.75rem; color: var(--accent-emerald); font-weight: 600;">Supports APK, MP4,
+                  MP3, PNG, JPG, PDF, ZIP • 10-Min Fast Ephemeral Storage</span>
+              </label>
+
+              <!-- Drag and drop zone -->
+              <div id="fileDropZone" class="file-drop-zone">
+                <input type="file" id="fileInputUpload" class="file-input-hidden" accept="*/*">
+                <div class="file-drop-content">
+                  <div class="file-drop-icon">
+                    <i data-lucide="cloud-upload" style="width: 32px; height: 32px;"></i>
+                  </div>
+                  <div class="file-drop-text">
+                    <span class="file-drop-highlight">Click to select a file</span> or drag & drop here
+                  </div>
+                  <div class="file-drop-sub">
+                    Direct public cloud hosting link generated automatically (expires in 10 minutes)
+                  </div>
+                </div>
+              </div>
+
+              <!-- File Info & Upload Progress Status -->
+              <div id="fileUploadStatusCard" class="file-status-card" style="display: none;">
+                <div class="file-status-header">
+                  <div class="file-status-icon-badge" id="fileStatusIcon">
+                    <i data-lucide="file"></i>
+                  </div>
+                  <div class="file-status-meta">
+                    <div class="file-name-line" id="fileSelectedName">document.pdf</div>
+                    <div class="file-sub-line" id="fileSelectedDetails">2.4 MB • application/pdf</div>
+                  </div>
+                  <button type="button" id="btnRemoveSelectedFile" class="btn-icon-subtle" title="Remove File">
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="fileUploadProgressTrack" class="file-progress-track" style="display: none;">
+                  <div id="fileUploadProgressBar" class="file-progress-bar"></div>
+                </div>
+                <div id="fileUploadProgressText" class="file-progress-text" style="display: none;">Uploading...</div>
+              </div>
+            </div>
+
+            <!-- Custom / Direct Download Link Input -->
+            <div class="form-group full-width" style="margin-top: 0.25rem;">
+              <label class="form-label" for="inputFileDirectUrl">
+                <span>Or Enter Direct File / Cloud Download URL</span>
+                <span style="font-size: 0.725rem; color: var(--text-muted); font-weight: 500;">Google Drive, Dropbox,
+                  MediaFire, S3</span>
+              </label>
+              <div class="input-with-icon">
+                <i data-lucide="link" class="input-icon"></i>
+                <input type="url" id="inputFileDirectUrl" class="form-input"
+                  placeholder="https://example.com/downloads/my-app.apk">
+              </div>
+            </div>
+
+            <!-- File Note / Title (Optional) -->
+            <div class="form-group full-width">
+              <label class="form-label" for="inputFileTitle">File Description / Name (Optional)</label>
+              <input type="text" id="inputFileTitle" class="form-input" placeholder="e.g. My App v1.0 (Android APK)">
             </div>
           </div>
         </div>
@@ -856,6 +932,22 @@
                     <input type="text" id="frameTextColorHex" class="form-input color-hex-input" value="#FFFFFF">
                   </div>
                 </div>
+
+                <!-- Short URL Option in Frame -->
+                <div class="form-group full-width"
+                  style="margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-color);">
+                  <label class="radio-pill-label"
+                    style="width: 100%; display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer;">
+                    <input type="checkbox" id="frameIncludeShortUrl" style="margin-top: 0.2rem;">
+                    <div>
+                      <span style="font-weight: 700; color: var(--text-primary); font-size: 0.85rem;">Display Short URL
+                        on QR frame</span>
+                      <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 400; margin-top: 2px;">
+                        Shows clickable/readable link at bottom so users without a scanner can type it directly
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -909,6 +1001,36 @@
           <!-- QR Canvas Render Holder -->
           <div class="qr-canvas-holder" id="qrCanvasContainer">
             <!-- Canvas rendered here by QRGenerator -->
+          </div>
+
+          <!-- Bottom Short URL Display & Fallback Box -->
+          <div class="qr-short-url-box" id="qrShortUrlCard">
+            <div class="short-url-top-row">
+              <span class="short-url-label">
+                <i data-lucide="link-2" style="width: 13px; height: 13px; color: var(--primary);"></i>
+                <span>Direct / Short Link</span>
+              </span>
+              <div class="short-url-actions-row">
+                <button type="button" id="btnRefreshShortUrl" class="btn-micro" title="Generate New Short URL">
+                  <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i>
+                </button>
+                <button type="button" id="btnCopyShortUrl" class="btn-micro primary" title="Copy Link to Clipboard">
+                  <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+            <div class="short-url-link-wrapper">
+              <a href="#" id="displayShortUrlLink" target="_blank" rel="noopener noreferrer" class="short-url-link">
+                Generating link...
+              </a>
+            </div>
+            <div class="short-url-helper">
+              <label class="short-url-toggle-label">
+                <input type="checkbox" id="togglePrintShortUrlOnQR" checked>
+                <span>Include this URL directly at bottom of QR export</span>
+              </label>
+            </div>
           </div>
 
           <div class="preview-info-row">
@@ -1149,6 +1271,8 @@
           <div class="form-group full-width">
             <label class="form-label">Quick Duration Presets</label>
             <div class="quick-presets-row">
+              <button type="button" class="btn-preset-pill" data-preset-minutes="10">+10 Mins</button>
+              <button type="button" class="btn-preset-pill" data-preset-hours="1">+1 Hour</button>
               <button type="button" class="btn-preset-pill" data-preset-hours="24">+24 Hours</button>
               <button type="button" class="btn-preset-pill" data-preset-days="7">+7 Days</button>
               <button type="button" class="btn-preset-pill" data-preset-days="30">+30 Days</button>
@@ -1352,6 +1476,17 @@
             <div class="menu-hub-content">
               <div class="menu-hub-title">App Store Links</div>
               <div class="menu-hub-desc">Apple iOS App Store and Google Play Store dispatcher</div>
+            </div>
+            <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
+          </div>
+
+          <div class="menu-hub-item" data-choose-type="file">
+            <div class="menu-hub-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">
+              <i data-lucide="file-up"></i>
+            </div>
+            <div class="menu-hub-content">
+              <div class="menu-hub-title">File Sharing (Any Type)</div>
+              <div class="menu-hub-desc">Upload & distribute APK, MP4, MP3, PDF, PNG, JPEG, ZIP, docs</div>
             </div>
             <i data-lucide="arrow-right" class="menu-hub-chevron"></i>
           </div>

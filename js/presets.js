@@ -4,7 +4,7 @@
  */
 export const DesignPresets = [
   // ==========================================
-  // 0. FEATURED DESIGNER TEMPLATES (From User Showcase)
+  // 0. FEATURED DESIGNER TEMPLATES (User Showcase se)
   // ==========================================
   {
     id: 'template-tiktok',
@@ -764,7 +764,7 @@ export const DesignPresets = [
   },
 
   // ==========================================
-  // 1. COOL PRESETS (8 Designs)
+  // 1. COOL PRESETS (8 Zabardast Designs)
   // ==========================================
   {
     id: 'modern-dark',
@@ -927,7 +927,7 @@ export const DesignPresets = [
   },
 
   // ==========================================
-  // 2. PROFESSIONAL PRESETS (8 Designs)
+  // 2. PROFESSIONAL PRESETS (8 Corporate Designs)
   // ==========================================
   {
     id: 'emerald-glass',
@@ -1093,7 +1093,7 @@ export const DesignPresets = [
   },
 
   // ==========================================
-  // 3. SIMPLE PRESETS (8 Designs)
+  // 3. SIMPLE PRESETS (8 Clean Designs)
   // ==========================================
   {
     id: 'minimalist-mono',
@@ -1244,7 +1244,7 @@ export const DesignPresets = [
   },
 
   // ==========================================
-  // 4. GAMING PRESETS (8 Designs)
+  // 4. GAMING PRESETS (8 Esports Designs)
   // ==========================================
   {
     id: 'gaming-razer',

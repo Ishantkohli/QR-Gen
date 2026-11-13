@@ -1,6 +1,6 @@
 /**
  * QR Generator Core Engine
- * Integrates QRCodeStyling with custom frames, branding, and multi-format exports.
+ * QRCodeStyling ko custom frames, branding, aur multi-format exports ke saath integrate karta hai.
  */
 
 export class QRGenerator {
@@ -46,7 +46,7 @@ export class QRGenerator {
         type: 'dot',
         color: '#2563eb'
       },
-      // Extended properties for frames
+      // Frames ke liye extended properties
       frame: {
         style: 'none', // 'none' | 'bottom-badge' | 'top-banner' | 'card-border' | 'phone'
         text: 'SCAN ME',
@@ -68,7 +68,7 @@ export class QRGenerator {
 
   getCleanLibraryOptions() {
     const opts = { ...this.currentOptions };
-    // Extract base options recognized by QRCodeStyling
+    // QRCodeStyling dwara pehchane jaane wale base options extract karo
     const libOpts = {
       width: opts.width || 320,
       height: opts.height || 320,
@@ -140,15 +140,16 @@ export class QRGenerator {
       this.qrCode.append(this._rawWrapper);
     }
 
-    // Wait on drawing promise or frame
+    // Drawing promise ya frame render hone ka intezar karo
     if (this.qrCode._canvasDrawingPromise) {
       await this.qrCode._canvasDrawingPromise;
     } else {
       await new Promise(r => requestAnimationFrame(r));
     }
 
-    // If frame is enabled, render framed version
-    if (this.currentOptions.frame && this.currentOptions.frame.style !== 'none') {
+    // Agar frame enabled hai ya short URL displayed hai, toh framed/card version render karo
+    const hasShortUrl = this.currentOptions.showShortUrl !== false && (this.currentOptions.shortUrl || '').trim() !== '';
+    if ((this.currentOptions.frame && this.currentOptions.frame.style !== 'none') || hasShortUrl) {
       const framedCanvas = await this.generateFramedCanvas(320);
       if (framedCanvas) {
         this.container.innerHTML = '';
@@ -185,8 +186,54 @@ export class QRGenerator {
     if (!rawCanvas) return null;
 
     const frame = this.currentOptions.frame || { style: 'none' };
+    const shortUrl = (this.currentOptions.shortUrl || '').trim();
+    const showShortUrl = this.currentOptions.showShortUrl !== false && shortUrl !== '';
+
+    // Agar frame 'none' hai lekin shortUrl enabled hai, toh QR ko clean bottom link banner me wrap karo
     if (frame.style === 'none') {
-      return rawCanvas;
+      if (!showShortUrl) {
+        return rawCanvas;
+      }
+      // QR ke niche simple bottom link footer draw karo
+      const scale = targetSize / 320;
+      const finalCanvas = document.createElement('canvas');
+      const ctx = finalCanvas.getContext('2d');
+      const qrSize = targetSize;
+      const padding = 16 * scale;
+      const footerH = 44 * scale;
+      const cornerRadius = 16 * scale;
+
+      finalCanvas.width = qrSize + (padding * 2);
+      finalCanvas.height = qrSize + (padding * 2) + footerH;
+
+      ctx.fillStyle = '#ffffff';
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.fill();
+
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1.5 * scale;
+      this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
+      ctx.stroke();
+
+      ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
+
+      // Footer Pill / Link draw karo
+      const pillW = qrSize;
+      const pillH = 34 * scale;
+      const pillX = padding;
+      const pillY = qrSize + padding + (4 * scale);
+
+      ctx.fillStyle = '#f1f5f9';
+      this.roundRect(ctx, pillX, pillY, pillW, pillH, 8 * scale);
+      ctx.fill();
+
+      ctx.fillStyle = '#2563eb';
+      ctx.font = `600 ${13 * scale}px "JetBrains Mono", monospace, Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(shortUrl, pillX + (pillW / 2), pillY + (pillH / 2));
+
+      return finalCanvas;
     }
 
     const scale = targetSize / 320;
@@ -196,7 +243,12 @@ export class QRGenerator {
     const qrSize = targetSize;
     const frameColor = frame.color || '#2563eb';
     const textColor = frame.textColor || '#ffffff';
-    const frameText = frame.text || 'SCAN ME';
+    let frameText = frame.text || 'SCAN ME';
+
+    // Agar showShortUrl active hai aur frameText standard SCAN ME hai ya user ne Short URL choose kiya hai
+    if (showShortUrl && (frame.includeShortUrl || frame.style === 'bottom-badge')) {
+      frameText = shortUrl;
+    }
 
     if (frame.style === 'bottom-badge') {
       const padding = 24 * scale;
@@ -206,21 +258,21 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bannerHeight;
 
-      // Draw outer background card
+      // Outer background card draw karo
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
 
-      // Shadow / border
+      // Shadow / border border draw karo
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 2 * scale;
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // Draw Bottom Badge Button
+      // Bottom Badge Button draw karo
       const btnX = padding;
       const btnY = qrSize + padding + (8 * scale);
       const btnWidth = qrSize;
@@ -231,7 +283,7 @@ export class QRGenerator {
       this.roundRect(ctx, btnX, btnY, btnWidth, btnHeight, btnRadius);
       ctx.fill();
 
-      // Draw text
+      // Text draw karo
       ctx.fillStyle = textColor;
       ctx.font = `bold ${18 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
@@ -246,7 +298,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bannerHeight;
 
-      // Draw card
+      // Card draw karo
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -256,7 +308,7 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw Top Banner
+      // Top Banner draw karo
       const btnX = padding;
       const btnY = padding;
       const btnWidth = qrSize;
@@ -267,14 +319,14 @@ export class QRGenerator {
       this.roundRect(ctx, btnX, btnY, btnWidth, btnHeight, btnRadius);
       ctx.fill();
 
-      // Draw text
+      // Text draw karo
       ctx.fillStyle = textColor;
       ctx.font = `bold ${18 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(frameText.toUpperCase(), btnX + (btnWidth / 2), btnY + (btnHeight / 2));
 
-      // Draw QR Code below
+      // QR Code ko niche draw karo
       ctx.drawImage(rawCanvas, padding, padding + bannerHeight, qrSize, qrSize);
 
     } else if (frame.style === 'card-border') {
@@ -286,12 +338,12 @@ export class QRGenerator {
       finalCanvas.width = qrSize + ((borderWidth + padding) * 2);
       finalCanvas.height = qrSize + ((borderWidth + padding) * 2) + bottomHeight;
 
-      // Draw thick border background
+      // Thick border background draw karo
       ctx.fillStyle = frameColor;
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
 
-      // Inner white card
+      // Inner white card banayein
       const innerX = borderWidth;
       const innerY = borderWidth;
       const innerW = finalCanvas.width - (borderWidth * 2);
@@ -301,10 +353,10 @@ export class QRGenerator {
       this.roundRect(ctx, innerX, innerY, innerW, innerH, cornerRadius - 8);
       ctx.fill();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, borderWidth + padding, borderWidth + padding, qrSize, qrSize);
 
-      // Draw Bottom CTA
+      // Bottom CTA text draw karo
       ctx.fillStyle = frameColor;
       ctx.font = `800 ${19 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
@@ -319,7 +371,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
 
-      // Draw outer background card
+      // Outer background card draw karo
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -329,10 +381,10 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // Draw 4 Corner Brackets around QR code
+      // QR code ke chaaron taraf 4 Corner Brackets draw karo
       const bracketLen = 34 * scale;
       const bracketStroke = 8 * scale;
       const bracketRadius = 14 * scale;
@@ -394,7 +446,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
 
-      // Background Card
+      // Background Card banayein
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -404,7 +456,7 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw Circular Ring
+      // Circular Ring draw karo
       const centerX = finalCanvas.width / 2;
       const centerY = padding + (qrSize / 2);
       const radius = (qrSize / 2) + (14 * scale);
@@ -417,10 +469,10 @@ export class QRGenerator {
       ctx.stroke();
       ctx.restore();
 
-      // Draw QR code inside circle
+      // Circle ke andar QR code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // If badge with text, draw pill button at bottom
+      // Agar badge text ke saath hai, bottom me pill button draw karo
       if (frame.style === 'circle-badge' && frameText) {
         const btnWidth = Math.min(qrSize * 0.72, 190 * scale);
         const btnHeight = 38 * scale;
@@ -459,7 +511,7 @@ export class QRGenerator {
       const centerY = padding + (qrSize / 2);
       const hexRadius = (qrSize / 2) + (18 * scale);
 
-      // Draw Hexagon Border
+      // Hexagon Border draw karo
       ctx.save();
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -476,7 +528,7 @@ export class QRGenerator {
       ctx.stroke();
       ctx.restore();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
       if (frame.style === 'hexagon-badge' && frameText) {
@@ -504,7 +556,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
 
-      // Card
+      // Card draw karo
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -514,10 +566,10 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // Draw 3D Ribbon Banner
+      // 3D Ribbon Banner draw karo
       const ribW = qrSize + (12 * scale);
       const ribH = 38 * scale;
       const ribX = (finalCanvas.width - ribW) / 2;
@@ -526,7 +578,7 @@ export class QRGenerator {
 
       // Ribbon Fold Tails (Darker shade)
       ctx.fillStyle = this.adjustColorBrightness(frameColor, -25);
-      // Left tail
+      // Left tail draw karo
       ctx.beginPath();
       ctx.moveTo(ribX, ribY + (6 * scale));
       ctx.lineTo(ribX - foldW, ribY + (6 * scale));
@@ -536,7 +588,7 @@ export class QRGenerator {
       ctx.closePath();
       ctx.fill();
 
-      // Right tail
+      // Right tail draw karo
       ctx.beginPath();
       ctx.moveTo(ribX + ribW, ribY + (6 * scale));
       ctx.lineTo(ribX + ribW + foldW, ribY + (6 * scale));
@@ -550,7 +602,7 @@ export class QRGenerator {
       ctx.fillStyle = frameColor;
       ctx.fillRect(ribX, ribY, ribW, ribH);
 
-      // Text on Ribbon
+      // Ribbon par text draw karo
       ctx.fillStyle = textColor;
       ctx.font = `800 ${16 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
@@ -565,7 +617,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + (padding * 2) + bottomHeight;
 
-      // Card
+      // Card banayein
       ctx.fillStyle = '#ffffff';
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -575,10 +627,10 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // Draw Tooltip Bubble at bottom
+      // Bottom me Tooltip Bubble draw karo
       const bubbleW = qrSize;
       const bubbleH = 42 * scale;
       const bubbleX = padding;
@@ -591,7 +643,7 @@ export class QRGenerator {
       this.roundRect(ctx, bubbleX, bubbleY, bubbleW, bubbleH, 12 * scale);
       ctx.fill();
 
-      // Pointer triangle pointing UP
+      // Upar point karta hua triangle pointer
       ctx.beginPath();
       ctx.moveTo(centerX - (arrowW / 2), bubbleY);
       ctx.lineTo(centerX, bubbleY - arrowH);
@@ -599,7 +651,7 @@ export class QRGenerator {
       ctx.closePath();
       ctx.fill();
 
-      // Bubble text
+      // Bubble text draw karo
       ctx.fillStyle = textColor;
       ctx.font = `bold ${16 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
@@ -615,7 +667,7 @@ export class QRGenerator {
       finalCanvas.width = qrSize + (padding * 2);
       finalCanvas.height = qrSize + topBezel + bottomBezel;
 
-      // Smartphone outer body
+      // Smartphone ka outer body
       ctx.fillStyle = frameColor;
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
@@ -630,14 +682,14 @@ export class QRGenerator {
       this.roundRect(ctx, screenX, screenY, screenW, screenH, 18 * scale);
       ctx.fill();
 
-      // Speaker notch & camera dot at top
+      // Speaker notch & camera dot top par
       ctx.fillStyle = '#ffffff';
       const speakerW = 44 * scale;
       const speakerH = 5 * scale;
       this.roundRect(ctx, (finalCanvas.width - speakerW) / 2, 16 * scale, speakerW, speakerH, speakerH / 2);
       ctx.fill();
 
-      // Draw QR Code inside screen
+      // Screen ke andar QR Code draw karo
       ctx.drawImage(rawCanvas, padding, topBezel + (6 * scale), qrSize, qrSize);
 
       // Bottom Button / Pill
@@ -672,7 +724,7 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.stroke();
 
-      // Draw Dashed Circle
+      // Dashed Circle draw karo
       const centerX = finalCanvas.width / 2;
       const centerY = finalCanvas.height / 2;
       const radius = (qrSize / 2) + (14 * scale);
@@ -701,7 +753,7 @@ export class QRGenerator {
       this.roundRect(ctx, 0, 0, finalCanvas.width, finalCanvas.height, cornerRadius);
       ctx.fill();
 
-      // Inner white rounded square for QR code
+      // Inner white rounded square QR code ke liye
       const innerX = 12 * scale;
       const innerY = 12 * scale;
       const innerW = finalCanvas.width - (innerX * 2);
@@ -711,10 +763,10 @@ export class QRGenerator {
       this.roundRect(ctx, innerX, innerY, innerW, innerH, cornerRadius - 6);
       ctx.fill();
 
-      // Draw QR Code
+      // QR Code draw karo
       ctx.drawImage(rawCanvas, padding, padding, qrSize, qrSize);
 
-      // Bottom text
+      // Bottom text draw karo
       ctx.fillStyle = textColor;
       ctx.font = `italic bold ${20 * scale}px ${frame.fontFamily}`;
       ctx.textAlign = 'center';
@@ -778,10 +830,11 @@ export class QRGenerator {
    * Export to file
    */
   async export(format = 'png', resolution = 1024, filename = 'qr-code') {
-    const isFramed = this.currentOptions.frame && this.currentOptions.frame.style !== 'none';
+    const hasShortUrl = this.currentOptions.showShortUrl !== false && (this.currentOptions.shortUrl || '').trim() !== '';
+    const isFramed = (this.currentOptions.frame && this.currentOptions.frame.style !== 'none') || hasShortUrl;
 
     if (format === 'svg' && !isFramed) {
-      // Direct vector SVG download via library
+      // Library ke through direct vector SVG download karo
       const svgQR = new QRCodeStyling({
         ...this.getCleanLibraryOptions(),
         type: 'svg',
@@ -827,7 +880,7 @@ export class QRGenerator {
       return;
     }
 
-    // Download image
+    // Image download karo
     const mimeType = format === 'jpeg' || format === 'jpg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
     const dataUrl = canvas.toDataURL(mimeType, 0.95);
     const link = document.createElement('a');
@@ -854,22 +907,22 @@ export class QRGenerator {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Center on page
+    // Page ke center me position karo
     const qrWidth = 120;
     const qrHeight = (canvas.height / canvas.width) * qrWidth;
     const x = (pageWidth - qrWidth) / 2;
     const y = (pageHeight - qrHeight) / 2 - 15;
 
-    // Add clean header
+    // Clean header add karo
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(22);
     doc.setTextColor(30, 41, 59);
     doc.text('Scan QR Code', pageWidth / 2, y - 20, { align: 'center' });
 
-    // Add QR image
+    // QR image add karo
     doc.addImage(imgData, 'PNG', x, y, qrWidth, qrHeight);
 
-    // Add footer caption
+    // Footer caption add karo
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
     doc.setTextColor(100, 116, 139);

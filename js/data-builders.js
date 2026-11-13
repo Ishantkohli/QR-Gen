@@ -1,9 +1,9 @@
 /**
- * Data Builders for standard QR Code payloads
+ * Standard QR Code payloads ke liye Data Builders
  */
 
 export const DataBuilders = {
-  // 1. URL with optional UTM parameters & Expiration routing
+  // 1. URL with optional UTM parameters aur Expiration routing
   url(data) {
     let urlStr = data.url ? data.url.trim() : '';
     if (!urlStr) return '';
@@ -20,10 +20,10 @@ export const DataBuilders = {
       if (data.utmContent) urlObj.searchParams.set('utm_content', data.utmContent.trim());
       urlStr = urlObj.toString();
     } catch (e) {
-      // Keep original urlStr
+      // Original urlStr ko waise hi rakho
     }
 
-    // Check if Expiration is enabled
+    // Check karo ki Expiration enabled hai ya nahi
     if (data.enableExpiry && data.expiryDateTime) {
       const expiryTimestamp = new Date(data.expiryDateTime).getTime();
       if (!isNaN(expiryTimestamp) && expiryTimestamp > 0) {
@@ -233,7 +233,7 @@ export const DataBuilders = {
     }
   },
 
-  // 13. App Stores (Dispatcher or Direct Link)
+  // 13. App Stores (Dispatcher ya Direct Link)
   app(data) {
     if (data.store === 'ios' && data.appId) {
       return `https://apps.apple.com/app/id${data.appId.replace(/[^0-9]/g, '')}`;
@@ -242,5 +242,18 @@ export const DataBuilders = {
       return `https://play.google.com/store/apps/details?id=${data.appId.trim()}`;
     }
     return data.appId || '';
+  },
+
+  // 14. Kisi Bhi File Sharing ke liye (APK, MP4, MP3, PDF, Images, Zip, Documents, etc.)
+  file(data) {
+    // Agar direct download link maujood hai, toh wahi return karo
+    if (data.fileUrl && data.fileUrl.trim()) {
+      return data.fileUrl.trim();
+    }
+    // Agar inline base64 data mila hai
+    if (data.fileData && data.fileData.trim()) {
+      return data.fileData.trim();
+    }
+    return 'https://example.com';
   }
 };

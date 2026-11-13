@@ -1,6 +1,6 @@
 /**
  * Batch QR Code Generator
- * Processes multiple URLs/lines or CSV data and creates a downloadable ZIP.
+ * Multiple URLs, lines ya CSV data process karke ek downloadable ZIP file banata hai.
  */
 
 export class BatchGenerator {
@@ -13,7 +13,7 @@ export class BatchGenerator {
     const items = [];
 
     lines.forEach((line, index) => {
-      // Check for comma separated format: URL, Filename
+      // Comma separated format check karo: URL, Filename
       if (line.includes(',')) {
         const parts = line.split(',');
         const data = parts[0].trim();
@@ -48,7 +48,7 @@ export class BatchGenerator {
         onProgress(i + 1, total, item.name);
       }
 
-      // Clone current options with new data
+      // Naye data ke saath current options clone karo
       const opts = {
         ...this.generator.getCleanLibraryOptions(),
         data: item.data,
@@ -72,7 +72,7 @@ export class BatchGenerator {
         
         let canvas = tempDiv.querySelector('canvas');
         if (this.generator.currentOptions.frame && this.generator.currentOptions.frame.style !== 'none') {
-          // Temporarily set data for framed generator
+          // Framed generator ke liye temporarily data set karo
           const origData = this.generator.currentOptions.data;
           this.generator.currentOptions.data = item.data;
           canvas = await this.generator.generateFramedCanvas(resolution);
